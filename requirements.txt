@@ -11,3 +11,16 @@ folium
 geopy
 streamlit-folium
 scipy
+fastapi
+folium
+geopy
+numpy
+pandas
+plotly
+requests
+scikit-learn
+scipy
+streamlit
+streamlit-folium
+streamlit-lottie
+uvicorn

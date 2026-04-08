@@ -190,6 +190,7 @@ class JobRiskResult:
     features: Dict[str, Any]
     reasons: List[str]
     suggestions: List[str]
+    contributions: Dict[str, float] = None
 
 
 def _risk_level_from_prob(p: float) -> str:
@@ -311,7 +312,26 @@ def predict_job_risk(
         features=meta,
         reasons=reasons[:5],
         suggestions=suggestions[:5],
+        contributions={k: round(v, 4) for k, v in contribs.items()},
     )
+
+
+def industry_risk_comparison(
+    skills_text: str,
+    education_label: str,
+    experience_years: int,
+    location_label: str,
+) -> List[Dict[str, Any]]:
+    """Run the model across all industries to show where the user fits best."""
+    rows = []
+    for ind_label in INDUSTRY_GROWTH:
+        r = predict_job_risk(skills_text, education_label, experience_years, location_label, ind_label)
+        rows.append({
+            "Industry": ind_label,
+            "Risk (%)": r.high_risk_probability_pct,
+            "Level": r.risk_level,
+        })
+    return sorted(rows, key=lambda x: x["Risk (%)"])
 
 
 def what_if_improve_skills(

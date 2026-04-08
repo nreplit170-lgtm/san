@@ -341,7 +341,7 @@ if sens_rows:
         return ""
 
     st.dataframe(
-        sens_df.style.applymap(_color_warning, subset=["Early Warning"]),
+        sens_df.style.map(_color_warning, subset=["Early Warning"]),
         use_container_width=True,
         hide_index=True,
     )

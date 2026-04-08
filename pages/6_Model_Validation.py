@@ -338,7 +338,7 @@ if detail:
             return ""
 
     st.dataframe(
-        display_df.style.applymap(_style_residual, subset=["Residual (pp)", "Abs Error (pp)"]),
+        display_df.style.map(_style_residual, subset=["Residual (pp)", "Abs Error (pp)"]),
         use_container_width=True,
         hide_index=True,
     )

@@ -1,0 +1,91 @@
+post_date,job_title,description,location,salary_min_lpa,salary_max_lpa
+2025-01-06,QA Engineer II,We need manual testing agile selenium. Team collaborates on modern stack. B2B domain.,Bangalore,,
+2025-01-07,Full Stack Developer,We need javascript react node sql full stack. Team collaborates on modern stack. B2B domain.,Hyderabad,,
+2025-01-08,QA Engineer,We need manual testing agile selenium. Team collaborates on modern stack. healthcare domain.,Remote,8,18
+2025-01-09,Senior Software Engineer (Remote),We need python react aws kubernetes agile. Team collaborates on modern stack. B2B domain.,Hyderabad,10,14
+2025-01-10,Full Stack Developer II,We need javascript react node sql full stack. Team collaborates on modern stack. healthcare domain.,Remote,15,21
+2025-01-11,Business Analyst II,We need excel power bi communication sql. Team collaborates on modern stack. fintech domain.,Bangalore,10,20
+2025-01-12,Product Manager,We need product management agile communication excel. Team collaborates on modern stack. B2B domain.,Hyderabad,12,16
+2025-01-13,ML Engineer,We need machine learning pytorch python cloud computing. Team collaborates on modern stack. B2B domain.,Pune,12,20
+2025-01-14,Cloud Architect,We need aws azure terraform kubernetes. Team collaborates on modern stack. fintech domain.,Remote,8,18
+2025-01-13,Frontend Engineer (Remote),We need javascript react typescript css. Team collaborates on modern stack. fintech domain.,Remote,12,18
+2025-01-14,Data Scientist,We need machine learning python sql deep learning. Team collaborates on modern stack. B2B domain.,Hyderabad,12,16
+2025-01-15,Java Developer (Remote),We need java spring boot sql. Team collaborates on modern stack. B2B domain.,Mumbai,12,22
+2025-01-16,Java Developer,We need java spring boot sql. Team collaborates on modern stack. fintech domain.,Hyderabad,12,20
+2025-01-17,QA Engineer (Remote),We need manual testing agile selenium. Team collaborates on modern stack. fintech domain.,Bangalore,18,24
+2025-01-18,Cloud Architect II,We need aws azure terraform kubernetes. Team collaborates on modern stack. B2B domain.,Hyderabad,15,25
+2025-01-19,HR Specialist,We need communication excel. Team collaborates on modern stack. healthcare domain.,Remote,10,18
+2025-01-20,Full Stack Developer,We need javascript react node sql full stack. Team collaborates on modern stack. B2B domain.,Pune,15,23
+2025-01-21,Full Stack Developer II,We need javascript react node sql full stack. Team collaborates on modern stack. healthcare domain.,Pune,10,20
+2025-01-20,HR Specialist,We need communication excel. Team collaborates on modern stack. healthcare domain.,Mumbai,10,18
+2025-01-21,Full Stack Developer (Remote),We need javascript react node sql full stack. Team collaborates on modern stack. healthcare domain.,Remote,18,26
+2025-01-22,Business Analyst,We need excel power bi communication sql. Team collaborates on modern stack. fintech domain.,Remote,15,23
+2025-01-23,DevOps Engineer,We need kubernetes terraform aws jenkins devops. Team collaborates on modern stack. healthcare domain.,Mumbai,8,12
+2025-01-24,DevOps Engineer II,We need kubernetes terraform aws jenkins devops. Team collaborates on modern stack. healthcare domain.,Hyderabad,,
+2025-01-25,Business Analyst (Remote),We need excel power bi communication sql. Team collaborates on modern stack. B2B domain.,Mumbai,15,25
+2025-01-26,Product Manager (Remote),We need product management agile communication excel. Team collaborates on modern stack. healthcare domain.,Bangalore,,
+2025-01-27,Data Scientist,We need machine learning python sql deep learning. Team collaborates on modern stack. healthcare domain.,Remote,12,20
+2025-01-28,Product Manager (Remote),We need product management agile communication excel. Team collaborates on modern stack. fintech domain.,Hyderabad,15,19
+2025-01-27,HR Specialist (Remote),We need communication excel. Team collaborates on modern stack. healthcare domain.,Pune,18,24
+2025-01-28,HR Specialist (Remote),We need communication excel. Team collaborates on modern stack. B2B domain.,Pune,,
+2025-01-29,Business Analyst (Remote),We need excel power bi communication sql. Team collaborates on modern stack. B2B domain.,Hyderabad,12,18
+2025-01-30,Security Analyst II,We need cybersecurity python aws. Team collaborates on modern stack. healthcare domain.,Bangalore,18,26
+2025-01-31,Senior Software Engineer,We need python react aws kubernetes agile. Team collaborates on modern stack. B2B domain.,Pune,12,18
+2025-02-01,Full Stack Developer,We need javascript react node sql full stack. Team collaborates on modern stack. healthcare domain.,Bangalore,8,18
+2025-02-02,Security Analyst (Remote),We need cybersecurity python aws. Team collaborates on modern stack. healthcare domain.,Hyderabad,10,20
+2025-02-03,DevOps Engineer,We need kubernetes terraform aws jenkins devops. Team collaborates on modern stack. fintech domain.,Remote,18,28
+2025-02-04,HR Specialist II,We need communication excel. Team collaborates on modern stack. healthcare domain.,Hyderabad,,
+2025-02-03,ML Engineer,We need machine learning pytorch python cloud computing. Team collaborates on modern stack. healthcare domain.,Pune,15,25
+2025-02-04,Full Stack Developer (Remote),We need javascript react node sql full stack. Team collaborates on modern stack. B2B domain.,Bangalore,12,16
+2025-02-05,Frontend Engineer,We need javascript react typescript css. Team collaborates on modern stack. B2B domain.,Remote,10,14
+2025-02-06,Cloud Architect,We need aws azure terraform kubernetes. Team collaborates on modern stack. healthcare domain.,Bangalore,10,14
+2025-02-07,Java Developer II,We need java spring boot sql. Team collaborates on modern stack. fintech domain.,Bangalore,18,24
+2025-02-08,QA Engineer (Remote),We need manual testing agile selenium. Team collaborates on modern stack. fintech domain.,Hyderabad,18,24
+2025-02-09,HR Specialist II,We need communication excel. Team collaborates on modern stack. healthcare domain.,Remote,15,21
+2025-02-10,Security Analyst (Remote),We need cybersecurity python aws. Team collaborates on modern stack. fintech domain.,Hyderabad,8,12
+2025-02-11,ML Engineer (Remote),We need machine learning pytorch python cloud computing. Team collaborates on modern stack. fintech domain.,Mumbai,15,25
+2025-02-10,Senior Software Engineer (Remote),We need python react aws kubernetes agile. Team collaborates on modern stack. healthcare domain.,Bangalore,8,18
+2025-02-11,Data Engineer (Remote),We need python sql etl snowflake databricks. Team collaborates on modern stack. B2B domain.,Hyderabad,10,16
+2025-02-12,Backend Engineer II,We need java spring boot sql microservices. Team collaborates on modern stack. B2B domain.,Mumbai,10,18
+2025-02-13,Full Stack Developer,We need javascript react node sql full stack. Team collaborates on modern stack. B2B domain.,Mumbai,18,22
+2025-02-14,QA Engineer,We need manual testing agile selenium. Team collaborates on modern stack. healthcare domain.,Bangalore,8,14
+2025-02-15,ML Engineer,We need machine learning pytorch python cloud computing. Team collaborates on modern stack. fintech domain.,Mumbai,10,20
+2025-02-16,DevOps Engineer II,We need kubernetes terraform aws jenkins devops. Team collaborates on modern stack. fintech domain.,Bangalore,15,23
+2025-02-17,Product Manager (Remote),We need product management agile communication excel. Team collaborates on modern stack. fintech domain.,Remote,,
+2025-02-18,Backend Engineer,We need java spring boot sql microservices. Team collaborates on modern stack. B2B domain.,Hyderabad,12,18
+2025-02-17,Business Analyst,We need excel power bi communication sql. Team collaborates on modern stack. healthcare domain.,Remote,8,16
+2025-02-18,Senior Software Engineer,We need python react aws kubernetes agile. Team collaborates on modern stack. healthcare domain.,Mumbai,18,24
+2025-02-19,Frontend Engineer (Remote),We need javascript react typescript css. Team collaborates on modern stack. B2B domain.,Hyderabad,8,12
+2025-02-20,Java Developer (Remote),We need java spring boot sql. Team collaborates on modern stack. B2B domain.,Mumbai,8,14
+2025-02-21,Business Analyst (Remote),We need excel power bi communication sql. Team collaborates on modern stack. B2B domain.,Remote,8,18
+2025-02-22,Business Analyst,We need excel power bi communication sql. Team collaborates on modern stack. healthcare domain.,Remote,12,20
+2025-02-23,QA Engineer II,We need manual testing agile selenium. Team collaborates on modern stack. healthcare domain.,Pune,10,18
+2025-02-24,DevOps Engineer,We need kubernetes terraform aws jenkins devops. Team collaborates on modern stack. healthcare domain.,Pune,15,23
+2025-02-25,Senior Software Engineer,We need python react aws kubernetes agile. Team collaborates on modern stack. fintech domain.,Remote,18,22
+2025-02-24,Frontend Engineer II,We need javascript react typescript css. Team collaborates on modern stack. B2B domain.,Remote,12,18
+2025-02-25,HR Specialist,We need communication excel. Team collaborates on modern stack. B2B domain.,Hyderabad,12,20
+2025-02-26,Backend Engineer (Remote),We need java spring boot sql microservices. Team collaborates on modern stack. healthcare domain.,Pune,18,22
+2025-02-27,Java Developer,We need java spring boot sql. Team collaborates on modern stack. healthcare domain.,Pune,,
+2025-02-28,HR Specialist (Remote),We need communication excel. Team collaborates on modern stack. B2B domain.,Pune,8,12
+2025-03-01,Frontend Engineer (Remote),We need javascript react typescript css. Team collaborates on modern stack. B2B domain.,Pune,12,18
+2025-03-02,Data Engineer II,We need python sql etl snowflake databricks. Team collaborates on modern stack. B2B domain.,Pune,18,28
+2025-03-03,HR Specialist II,We need communication excel. Team collaborates on modern stack. B2B domain.,Bangalore,,
+2025-03-04,Java Developer,We need java spring boot sql. Team collaborates on modern stack. fintech domain.,Bangalore,8,16
+2025-03-03,QA Engineer II,We need manual testing agile selenium. Team collaborates on modern stack. fintech domain.,Hyderabad,,
+2025-03-04,Frontend Engineer,We need javascript react typescript css. Team collaborates on modern stack. healthcare domain.,Mumbai,18,22
+2025-03-05,Data Scientist II,We need machine learning python sql deep learning. Team collaborates on modern stack. healthcare domain.,Hyderabad,18,22
+2025-03-06,Business Analyst,We need excel power bi communication sql. Team collaborates on modern stack. healthcare domain.,Hyderabad,15,21
+2025-03-07,Product Manager (Remote),We need product management agile communication excel. Team collaborates on modern stack. fintech domain.,Bangalore,12,18
+2025-03-08,Full Stack Developer (Remote),We need javascript react node sql full stack. Team collaborates on modern stack. healthcare domain.,Bangalore,12,22
+2025-03-09,Cloud Architect II,We need aws azure terraform kubernetes. Team collaborates on modern stack. B2B domain.,Hyderabad,10,16
+2025-03-10,Senior Software Engineer II,We need python react aws kubernetes agile. Team collaborates on modern stack. B2B domain.,Pune,15,21
+2025-03-11,DevOps Engineer II,We need kubernetes terraform aws jenkins devops. Team collaborates on modern stack. healthcare domain.,Bangalore,15,19
+2025-03-10,Full Stack Developer,We need javascript react node sql full stack. Team collaborates on modern stack. B2B domain.,Mumbai,12,20
+2025-03-11,Full Stack Developer II,We need javascript react node sql full stack. Team collaborates on modern stack. B2B domain.,Hyderabad,15,23
+2025-03-12,Java Developer (Remote),We need java spring boot sql. Team collaborates on modern stack. B2B domain.,Pune,12,22
+2025-03-13,Java Developer II,We need java spring boot sql. Team collaborates on modern stack. healthcare domain.,Pune,8,12
+2025-03-14,DevOps Engineer (Remote),We need kubernetes terraform aws jenkins devops. Team collaborates on modern stack. healthcare domain.,Pune,8,12
+2025-03-15,ML Engineer II,We need machine learning pytorch python cloud computing. Team collaborates on modern stack. fintech domain.,Pune,15,19
+2025-03-16,HR Specialist (Remote),We need communication excel. Team collaborates on modern stack. healthcare domain.,Hyderabad,12,16
+2025-03-17,ML Engineer II,We need machine learning pytorch python cloud computing. Team collaborates on modern stack. B2B domain.,Remote,18,24
+2025-03-18,ML Engineer (Remote),We need machine learning pytorch python cloud computing. Team collaborates on modern stack. B2B domain.,Pune,18,26

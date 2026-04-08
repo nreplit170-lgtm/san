@@ -1,0 +1,13 @@
+streamlit
+requests
+fastapi
+uvicorn
+pandas
+numpy
+plotly
+streamlit-lottie
+scikit-learn
+folium
+geopy
+streamlit-folium
+scipy

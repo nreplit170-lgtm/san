@@ -1,0 +1,16 @@
+city_key,display_name,lat,lon,market_tier_index
+bangalore,Bengaluru,12.9716,77.5946,0
+bengaluru,Bengaluru,12.9716,77.5946,0
+hyderabad,Hyderabad,17.3850,78.4867,0
+chennai,Chennai,13.0827,80.2707,0
+mumbai,Mumbai,19.0760,72.8777,0
+delhi,NCR / Delhi,28.6139,77.2090,0
+new delhi,New Delhi,28.6139,77.2090,0
+gurugram,Gurugram,28.4595,77.0266,0
+gurgaon,Gurugram,28.4595,77.0266,0
+noida,Noida,28.5355,77.3910,0
+pune,Pune,18.5204,73.8567,1
+kolkata,Kolkata,22.5726,88.3639,1
+ahmedabad,Ahmedabad,23.0225,72.5714,1
+kochi,Kochi,9.9312,76.2673,1
+remote,Remote / Pan-India,22.9734,78.6569,0

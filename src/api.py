@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from src.data_loader import DataLoader
+from src.live_data import fetch_world_bank, get_data_source_label
 from src.preprocessing import Preprocessor
 from src.forecasting import ForecastingEngine
 from src.shock_scenario import ShockScenario
@@ -11,12 +11,13 @@ from src.scenario_metrics import ScenarioMetrics
 from src.policy_playbook import PolicyPlaybook
 from src.sector_analysis import SectorAnalysis
 from src.career_advisor import CareerAdvisor
-from src.insight_generator import InsightGenerator
+from src.llm_insights import generate_insights
 from src.story_generator import StoryGenerator
 from src.model_validator import ModelValidator
+from src.historical_events import get_all_events
 
 
-app = FastAPI(title="Unemployment Scenario API")
+app = FastAPI(title="Unemployment Intelligence Platform API v2")
 
 
 # -------- Request Schemas --------
@@ -34,10 +35,10 @@ class BacktestRequest(BaseModel):
 
 def _load_prepared_series():
     """
-    Shared helper to load and preprocess the India unemployment series.
+    Loads India unemployment series.
+    Tries World Bank Live API first, falls back to local CSV automatically.
     """
-    loader = DataLoader("data/raw/india_unemployment.csv", "India")
-    df = loader.load_clean_data()
+    df = fetch_world_bank(country="India")
     df = Preprocessor().preprocess(df)
     return df
 
@@ -45,19 +46,14 @@ def _load_prepared_series():
 # -------- Simulation Endpoint --------
 @app.post("/simulate")
 def simulate_scenario(request: ScenarioRequest):
-    """
-    Runs baseline + scenario simulation and returns results,
-    including high-level scenario indices.
-    """
-
     df = _load_prepared_series()
 
-    # Baseline forecast
-    baseline = ForecastingEngine(
-        forecast_horizon=request.forecast_horizon
-    ).forecast(df)
+    # Baseline forecast with confidence bands
+    engine = ForecastingEngine(forecast_horizon=request.forecast_horizon)
+    baseline = engine.forecast(df)
+    baseline_conf = engine.forecast_with_confidence(df)
 
-    # Scenario simulation
+    # Scenario simulation (shock now hits immediately — fixed logic)
     scenario = ShockScenario(
         shock_intensity=request.shock_intensity,
         shock_duration=request.shock_duration,
@@ -67,58 +63,59 @@ def simulate_scenario(request: ScenarioRequest):
     # Metrics
     metrics = ScenarioMetrics.compute_delta(baseline, scenario)
 
-    # Policy interpretation + indices
+    # Policy + Indices
     policy_cfg = PolicyPlaybook.get_policy(request.policy_name)
     indices = ScenarioMetrics.compute_indices(
         baseline_df=baseline,
         scenario_df=scenario,
         policy_name=request.policy_name or "None",
-        policy_cost_label=policy_cfg.get("relative_cost"),
     )
-    
-    # RQI
+
+    # Recovery Quality Index
     rqi = ScenarioMetrics.compute_rqi(scenario, request.recovery_rate)
     indices.update(rqi)
-    
-    # Early Warning Indicator
+
+    # Early Warning
     usi = indices.get("unemployment_stress_index", 0)
     rqi_label = rqi.get("rqi_label", "")
-    
     if usi > 40 or rqi_label == "Poor Recovery":
         status = "🔴 High Risk"
     elif usi > 20 or rqi_label == "Fast but Fragile":
         status = "🟡 Watch"
     else:
         status = "🟢 Stable"
-        
     indices["early_warning"] = status
 
-    # Sector Impact Analysis (RSSI + Resilience)
+    # Sector Analysis (calibrated to India's historical peak)
     sector_impact = SectorAnalysis.analyze_sectors(
         scenario_df=scenario,
         shock_intensity=request.shock_intensity,
-        recovery_rate=request.recovery_rate
+        recovery_rate=request.recovery_rate,
     )
 
-    # Career Advice (Rule-based AI)
-    career_advice = CareerAdvisor.generate_advice(sector_impact)
-    
-    # AI Insights (Feature 7)
-    # We need a name for the scenario, but the request doesn't pass "Scenario A" etc.
-    # We can just use "Simulated Scenario" or infer from policy.
-    scen_name = request.policy_name if request.policy_name and request.policy_name != "None" else "Shock Scenario"
-    
-    ai_insights = InsightGenerator.generate_scenario_insights(
+    # Career Advice with dynamic thresholds
+    career_advice = CareerAdvisor.generate_advice(
+        sector_impact, shock_intensity=request.shock_intensity
+    )
+
+    # AI Insights (LLM or rule-based fallback)
+    scen_name = (
+        request.policy_name
+        if request.policy_name and request.policy_name != "None"
+        else "Shock Scenario"
+    )
+    ai_insights = generate_insights(
         scenario_name=scen_name,
         indices=indices,
-        sector_impact=sector_impact
+        sector_impact=sector_impact,
     )
-    
-    # Story Mode (Feature 8)
+
+    # Story timeline
     story = StoryGenerator.generate_story(scenario, baseline)
 
     return {
         "baseline": baseline.to_dict(orient="records"),
+        "baseline_confidence": baseline_conf.to_dict(orient="records"),
         "scenario": scenario.to_dict(orient="records"),
         "metrics": metrics.to_dict(orient="records"),
         "policy": policy_cfg,
@@ -127,23 +124,17 @@ def simulate_scenario(request: ScenarioRequest):
         "career_advice": career_advice,
         "ai_insights": ai_insights,
         "story": story,
+        "data_source": get_data_source_label("India"),
     }
 
 
-# -------- Backtesting / Model Trust Endpoint --------
+# -------- Backtesting Endpoint --------
 @app.post("/backtest")
 def backtest_model(request: BacktestRequest):
-    """
-    Performs a simple backtest on the most recent N years to
-    illustrate how the trend-based forecasting behaves out of sample.
-    """
     df = _load_prepared_series()
 
     test_years = max(1, min(request.test_years, 10))
-
     if len(df) <= test_years + 5:
-        # Not enough history for a meaningful split; fall back to
-        # a very small test window.
         test_years = min(3, max(1, len(df) - 3))
 
     train_df = df.iloc[:-test_years]
@@ -151,23 +142,15 @@ def backtest_model(request: BacktestRequest):
 
     engine = ForecastingEngine(forecast_horizon=test_years)
     forecast_df = engine.forecast(train_df)
-
     merged = test_df.merge(forecast_df, on="Year", how="inner")
 
     if merged.empty:
-        return {
-            "historical": [],
-            "backtest": [],
-            "mae": None,
-            "mape": None,
-        }
+        return {"historical": [], "backtest": [], "mae": None, "mape": None}
 
     errors = merged["Predicted_Unemployment"] - merged["Unemployment_Rate"]
     mae = float(errors.abs().mean())
-
-    non_zero_actuals = merged["Unemployment_Rate"].replace(0, float("nan"))
-    mape_series = (errors.abs() / non_zero_actuals) * 100.0
-    mape = float(mape_series.mean())
+    non_zero = merged["Unemployment_Rate"].replace(0, float("nan"))
+    mape = float((errors.abs() / non_zero * 100).mean())
 
     return {
         "historical": test_df.to_dict(orient="records"),
@@ -176,29 +159,28 @@ def backtest_model(request: BacktestRequest):
         "mape": round(mape, 2) if mape == mape else None,
     }
 
-# -------- Model Validation Endpoint --------
+
+# -------- Validation Endpoint --------
 @app.get("/validate")
 def validate_model():
-    """
-    Comprehensive model validation using multiple metrics:
-    - MAE, MAPE, RMSE: Absolute error metrics
-    - R²: Variance explained
-    - Directional Accuracy: % correct predictions
-    - Forecast Bias: Over/underestimation
-    """
     df = _load_prepared_series()
-    
-    # Use last 60% as test, first 40% as train
     split_idx = int(len(df) * 0.4)
     train_df = df.iloc[:split_idx]
     test_df = df.iloc[split_idx:]
-    
-    # Forecast on test period
-    forecast_horizon = len(test_df)
-    engine = ForecastingEngine(forecast_horizon=forecast_horizon)
+
+    engine = ForecastingEngine(forecast_horizon=len(test_df))
     forecast_df = engine.forecast(train_df)
-    
-    # Get validation report
-    validation_report = ModelValidator.get_validation_report(test_df, forecast_df)
-    
-    return validation_report
+    return ModelValidator.get_validation_report(test_df, forecast_df)
+
+
+# -------- Historical Events Endpoint --------
+@app.get("/events")
+def get_historical_events():
+    return {"events": get_all_events()}
+
+
+# -------- Data Source Status --------
+@app.get("/data-status")
+def data_status():
+    label = get_data_source_label("India")
+    return {"source": label, "country": "India"}

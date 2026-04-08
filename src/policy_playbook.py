@@ -1,8 +1,8 @@
 """
 policy_playbook.py
 Catalogue of policy interventions and their economic characteristics.
+Single source of truth — cushion_score lives HERE, not duplicated elsewhere.
 """
-
 
 POLICIES = {
     "Fiscal Stimulus": {
@@ -11,6 +11,7 @@ POLICIES = {
         "relative_cost": "High",
         "effectiveness": "High",
         "time_to_impact": "1–2 years",
+        "cushion_score": 35,
         "mechanisms": ["Direct job creation", "Infrastructure investment", "Transfer payments"],
     },
     "Monetary Policy": {
@@ -19,6 +20,7 @@ POLICIES = {
         "relative_cost": "Low",
         "effectiveness": "Moderate",
         "time_to_impact": "6–18 months",
+        "cushion_score": 20,
         "mechanisms": ["Rate cuts", "Quantitative easing", "Credit easing"],
     },
     "Labor Reforms": {
@@ -27,6 +29,7 @@ POLICIES = {
         "relative_cost": "Moderate",
         "effectiveness": "Moderate–High (long run)",
         "time_to_impact": "2–5 years",
+        "cushion_score": 25,
         "mechanisms": ["Re-skilling programs", "Hiring incentives", "Unemployment insurance reform"],
     },
     "Industry Support": {
@@ -35,6 +38,7 @@ POLICIES = {
         "relative_cost": "Moderate",
         "effectiveness": "Moderate",
         "time_to_impact": "Immediate",
+        "cushion_score": 30,
         "mechanisms": ["Sectoral grants", "Wage subsidies", "Loan guarantees"],
     },
     "None": {
@@ -43,6 +47,7 @@ POLICIES = {
         "relative_cost": "None",
         "effectiveness": "Low",
         "time_to_impact": "N/A",
+        "cushion_score": 0,
         "mechanisms": [],
     },
 }
@@ -54,6 +59,10 @@ class PolicyPlaybook:
         if not policy_name or policy_name == "None":
             return POLICIES["None"]
         return POLICIES.get(policy_name, POLICIES["None"])
+
+    @staticmethod
+    def get_cushion_score(policy_name: str) -> int:
+        return PolicyPlaybook.get_policy(policy_name).get("cushion_score", 0)
 
     @staticmethod
     def list_policies() -> list:

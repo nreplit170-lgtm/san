@@ -28,6 +28,7 @@ with st.sidebar:
     st.page_link("pages/7_Job_Risk_Predictor.py", label="🎯 Job Risk (AI)")
     st.page_link("pages/8_Job_Market_Pulse.py", label="📡 Market Pulse")
     st.page_link("pages/9_Geo_Career_Advisor.py", label="🗺️ Geo Career")
+    st.page_link("pages/10_Skill_Obsolescence.py", label="⚡ Skill Obsolescence")
 
 st.markdown("""
 <div class="page-hero">
@@ -128,13 +129,16 @@ with col_tl:
     st.markdown('<div class="glass-card" style="max-height:500px; overflow-y:auto;">', unsafe_allow_html=True)
     st.markdown('<div class="section-title">📖 Year-by-Year Story</div>', unsafe_allow_html=True)
     if story:
+        _TYPE_ICON  = {"shock": "🔴", "recovery": "🔄", "stable": "🟢"}
+        _TYPE_COLOR = {"shock": "#ef4444", "recovery": "#f59e0b", "stable": "#10b981"}
         for event in story:
-            yr   = event.get("year", "?")
-            val  = event.get("value", "?")
-            desc = event.get("description", "")
-            icon = event.get("icon", "📅")
-            phase = event.get("phase", "")
-            color = "#ef4444" if "Shock" in phase else "#f59e0b" if "Recovery" in phase else "#10b981"
+            yr         = event.get("year", "?")
+            val        = event.get("scenario_val", "?")
+            desc       = event.get("body", "")
+            event_type = event.get("type", "stable")
+            icon       = _TYPE_ICON.get(event_type, "📅")
+            color      = _TYPE_COLOR.get(event_type, "#94a3b8")
+            phase_label = event_type.capitalize()
             st.markdown(f"""
             <div class="timeline-item">
                 <div>
@@ -148,7 +152,7 @@ with col_tl:
                     <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.2rem;">
                         <span class="timeline-year">{yr}</span>
                         <span style="font-size:0.78rem; font-weight:700; color:{color};">{val}%</span>
-                        {f'<span class="badge badge-info" style="font-size:0.7rem; padding:0.1rem 0.5rem;">{phase}</span>' if phase else ''}
+                        <span class="badge badge-info" style="font-size:0.7rem; padding:0.1rem 0.5rem;">{phase_label}</span>
                     </div>
                     <div class="timeline-desc">{desc}</div>
                 </div>
@@ -184,8 +188,8 @@ with col_chart:
         # Color coded phases from story
         for event in story:
             yr  = event.get("year")
-            phase = event.get("phase", "")
-            if yr and "Shock" in phase:
+            phase = event.get("type", "")
+            if yr and phase == "shock":
                 fig.add_vrect(x0=yr-0.4, x1=yr+0.4,
                               fillcolor="rgba(239,68,68,0.05)", line_width=0)
 

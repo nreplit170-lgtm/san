@@ -25,6 +25,7 @@ with st.sidebar:
     st.page_link("pages/7_Job_Risk_Predictor.py", label="🎯 Job Risk (AI)")
     st.page_link("pages/8_Job_Market_Pulse.py", label="📡 Market Pulse")
     st.page_link("pages/9_Geo_Career_Advisor.py", label="🗺️ Geo Career")
+    st.page_link("pages/10_Skill_Obsolescence.py", label="⚡ Skill Obsolescence")
 
 st.markdown("""
 <div class="page-hero">
@@ -63,7 +64,7 @@ if not val_data and not bt_data:
 mae  = val_data.get("mae",  "N/A") if val_data else "N/A"
 mape = val_data.get("mape", "N/A") if val_data else "N/A"
 rmse = val_data.get("rmse", "N/A") if val_data else "N/A"
-r2   = val_data.get("r2_score", None) if val_data else None
+r2   = val_data.get("r2", None) if val_data else None
 da   = val_data.get("directional_accuracy", "N/A") if val_data else "N/A"
 fb   = val_data.get("forecast_bias", "N/A") if val_data else "N/A"
 

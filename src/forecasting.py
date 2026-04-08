@@ -3,8 +3,8 @@ forecasting.py
 
 Purpose:
     Scenario-aware unemployment forecasting engine.
-    Produces real numeric forecasts using historical trends.
-    Core model: Trend + Mean-Reversion (replaces unstable pure linear extrapolation).
+    Default method: 'ensemble' — averages linear trend+mean-reversion,
+    exponential smoothing, and ARIMA-inspired for the most robust result.
 
 Economic rationale:
     Pure linear extrapolation assumes trends continue indefinitely, which is
@@ -16,10 +16,7 @@ Economic rationale:
 
 import pandas as pd
 import numpy as np
-from scipy.optimize import curve_fit
 
-# Default mean reversion strength: 0 = pure trend, 1 = full reversion to long-run.
-# Typical range 0.1–0.3 balances momentum with stability. Documented for tuning.
 DEFAULT_MEAN_REVERSION_STRENGTH = 0.15
 
 
@@ -27,194 +24,146 @@ class ForecastingEngine:
     def __init__(
         self,
         forecast_horizon: int = 5,
-        method: str = "exponential_smoothing",
+        method: str = "ensemble",
         mean_reversion_strength: float = DEFAULT_MEAN_REVERSION_STRENGTH,
     ):
         """
         Parameters:
         - forecast_horizon: number of future years to predict
         - method: 'linear', 'exponential_smoothing', 'arima_inspired', or 'ensemble'
+                  Default is 'ensemble' — most robust, uses mean reversion.
         - mean_reversion_strength: strength of pull toward long-run unemployment (0–1).
-          Higher = forecasts converge faster to historical mean; prevents divergence.
-          Default 0.15: moderate reversion. Use 0.2–0.3 for more stable long-term.
         """
         self.forecast_horizon = forecast_horizon
         self.method = method
         self.mean_reversion_strength = mean_reversion_strength
 
     def _fit_trend(self, df: pd.DataFrame) -> np.poly1d:
-        """
-        Fits a linear trend using ONLY last 10 years (recent regime).
-        Avoids contamination from distant structural shifts.
-        """
         window = 10
         recent_df = df.tail(window)
-
         x = np.arange(len(recent_df))
         y = recent_df["Unemployment_Smoothed"].values
-
         coeffs = np.polyfit(x, y, deg=1)
-        trend_model = np.poly1d(coeffs)
-
-        return trend_model
+        return np.poly1d(coeffs)
 
     def _forecast_trend_reversion(self, df: pd.DataFrame) -> list:
         """
-        Recursive multi-step forecast: forecast = trend_prediction + reversion_adjustment.
-        Each year is predicted from the previous year's forecast (year-by-year recursion).
-
-        Economic reasoning (why this is more realistic than pure linear extrapolation):
-        - Trend: captures short-to-medium momentum from last 10 years.
-        - Mean reversion: unemployment tends to gravitate toward a long-run level
-          (labor market equilibrium, NAIRU-like). Pure linear extrapolation can
-          drift to absurd levels; reversion pulls forecasts back toward history.
-
-        Long-horizon forecasts are less confident because:
-        - Structural breaks, policy changes, and shocks accumulate over time.
-        - Trend persistence decays: far-out years should depend less on today's
-          momentum and more on equilibrium (mean reversion).
-        - Uncertainty compounds; recursive forecasts reflect this by increasing
-          reversion and reducing trend influence for farther years.
+        Trend + Mean-Reversion forecast (the core well-designed model).
+        Each year: prediction = trend step + reversion pull toward long-run mean.
         """
         trend_model = self._fit_trend(df)
-        window = 10
-        # Slope: annual change from linear trend (robust across numpy versions)
         slope = float(trend_model(1) - trend_model(0))
-
-        # Long-run unemployment level: historical mean over full series.
         long_run_level = float(df["Unemployment_Smoothed"].mean())
-
-        # Max absolute year-over-year change (stability safeguard).
-        # Prevents monotonic runaway increases/decreases over many years.
         max_annual_step = 1.5
-
-        # Start from last observed value for recursive chain.
         current_value = float(df["Unemployment_Smoothed"].iloc[-1])
         predictions = []
 
         for h in range(1, self.forecast_horizon + 1):
-            # 1. Trend influence: decays with horizon (farther years = less trend).
-            #    Long-horizon forecasts are less confident in trend persistence.
-            trend_weight = 1.0 / (1.0 + 0.25 * h)  # e.g. h=1 → 0.8, h=6 → 0.4
+            trend_weight = 1.0 / (1.0 + 0.25 * h)
             trend_prediction = current_value + slope * trend_weight
-
-            # 2. Reversion influence: increases with horizon.
-            #    Far-out forecasts should converge toward long-run level.
             reversion_weight = min(1.0, h / 6.0)
             effective_strength = self.mean_reversion_strength * reversion_weight
             reversion_adjustment = effective_strength * (long_run_level - current_value)
-
             forecast = trend_prediction + reversion_adjustment
             forecast = max(0.0, forecast)
-
-            # 3. Stability safeguard: prevent monotonic runaway.
             delta = forecast - current_value
             if abs(delta) > max_annual_step:
                 forecast = current_value + np.sign(delta) * max_annual_step
                 forecast = max(0.0, forecast)
-
             predictions.append(forecast)
-            current_value = forecast  # Recursive: next year starts from this forecast
+            current_value = forecast
 
         return predictions
 
     def _exponential_smoothing(self, df: pd.DataFrame) -> list:
-        """
-        Simple exponential smoothing for more responsive forecasts.
-        """
         series = df["Unemployment_Smoothed"].values
-        alpha = 0.3  # smoothing factor (0.2-0.4 for year-to-year data)
-        
-        # Calculate smoothed values
+        alpha = 0.3
         smoothed = [series[0]]
         for i in range(1, len(series)):
-            smoothed.append(alpha * series[i] + (1 - alpha) * smoothed[i-1])
-        
-        # Forecast future values
+            smoothed.append(alpha * series[i] + (1 - alpha) * smoothed[i - 1])
         last_smoothed = smoothed[-1]
         trend = (smoothed[-1] - smoothed[-min(3, len(smoothed))]) / min(3, len(smoothed))
-        
-        predictions = []
-        for i in range(self.forecast_horizon):
-            predictions.append(last_smoothed + trend * (i + 1))
-        
-        return predictions
+        return [max(0.0, last_smoothed + trend * (i + 1)) for i in range(self.forecast_horizon)]
 
     def _arima_inspired(self, df: pd.DataFrame) -> list:
-        """
-        Simple ARIMA-inspired approach: trend + mean reversion.
-        """
         series = df["Unemployment_Smoothed"].values
-        
-        # Trend component (recent change)
         trend = series[-1] - series[-min(5, len(series))]
-        
-        # Mean reversion component (pull towards historical mean)
         historical_mean = series.mean()
         last_value = series[-1]
-        
         predictions = []
         value = last_value
         for i in range(self.forecast_horizon):
-            # Mix trend with mean reversion
             reversion_factor = (i + 1) / (self.forecast_horizon + 3)
             value = value + trend * 0.3 - (value - historical_mean) * 0.1 * reversion_factor
-            predictions.append(max(0, value))  # Prevent negative unemployment
-        
+            predictions.append(max(0.0, value))
         return predictions
 
     def _ensemble_forecast(self, df: pd.DataFrame) -> list:
         """
-        Combines multiple methods for robust predictions.
+        Weighted ensemble: trend+reversion (50%), ARIMA-inspired (30%), exp smoothing (20%).
+        Favours the mean-reversion model which has the strongest economic grounding.
         """
-        linear_preds = self._forecast_linear(df)
+        tr_preds = self._forecast_trend_reversion(df)
         exp_preds = self._exponential_smoothing(df)
         arima_preds = self._arima_inspired(df)
-        
-        # Average the three methods
-        ensemble = [
-            (linear_preds[i] + exp_preds[i] + arima_preds[i]) / 3
+        return [
+            0.50 * tr_preds[i] + 0.30 * arima_preds[i] + 0.20 * exp_preds[i]
             for i in range(self.forecast_horizon)
         ]
-        
-        return ensemble
 
     def _forecast_linear(self, df: pd.DataFrame) -> list:
-        """
-        Trend + mean-reversion forecast (replaces pure linear extrapolation).
-        Uses configurable mean_reversion_strength to prevent long-term divergence.
-        """
         return self._forecast_trend_reversion(df)
 
     def forecast(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Generates future unemployment forecasts using selected method.
-        """
         df = df.copy()
-
         last_year = int(df["Year"].max())
 
-        # Select forecasting method
-        if self.method == "linear":
-            predictions = self._forecast_linear(df)
-        elif self.method == "exponential_smoothing":
-            predictions = self._exponential_smoothing(df)
-        elif self.method == "arima_inspired":
-            predictions = self._arima_inspired(df)
-        elif self.method == "ensemble":
-            predictions = self._ensemble_forecast(df)
-        else:
-            # Default to ensemble (most robust)
-            predictions = self._ensemble_forecast(df)
+        method_map = {
+            "linear": self._forecast_trend_reversion,
+            "exponential_smoothing": self._exponential_smoothing,
+            "arima_inspired": self._arima_inspired,
+            "ensemble": self._ensemble_forecast,
+        }
+        fn = method_map.get(self.method, self._ensemble_forecast)
+        predictions = fn(df)
 
-        future_years = np.arange(
-            last_year + 1,
-            last_year + 1 + self.forecast_horizon
-        )
-
-        forecast_df = pd.DataFrame({
+        future_years = np.arange(last_year + 1, last_year + 1 + self.forecast_horizon)
+        return pd.DataFrame({
             "Year": future_years,
-            "Predicted_Unemployment": predictions
+            "Predicted_Unemployment": [round(p, 4) for p in predictions],
         })
 
-        return forecast_df
+    def forecast_with_confidence(self, df: pd.DataFrame, n_simulations: int = 500) -> pd.DataFrame:
+        """
+        Monte Carlo simulation for real confidence bands.
+        Adds noise based on historical volatility, runs n_simulations, returns
+        mean + 10th/90th percentile bounds.
+        """
+        df = df.copy()
+        last_year = int(df["Year"].max())
+        future_years = np.arange(last_year + 1, last_year + 1 + self.forecast_horizon)
+
+        # Historical residual std — the true uncertainty measure
+        hist_std = float(df["Unemployment_Smoothed"].diff().dropna().std())
+        base_preds = np.array(self._ensemble_forecast(df))
+
+        all_sims = []
+        rng = np.random.default_rng(42)
+
+        for _ in range(n_simulations):
+            # Cumulative noise grows with horizon (uncertainty compounds)
+            noise = rng.normal(0, hist_std, self.forecast_horizon)
+            cumulative = np.cumsum(noise) * 0.4   # damped so bands aren't too wide
+            sim = np.clip(base_preds + cumulative, 0.0, None)
+            all_sims.append(sim)
+
+        sims = np.array(all_sims)
+
+        return pd.DataFrame({
+            "Year": future_years,
+            "Predicted_Unemployment": np.round(base_preds, 4),
+            "Lower_80": np.round(np.percentile(sims, 10, axis=0), 4),
+            "Upper_80": np.round(np.percentile(sims, 90, axis=0), 4),
+            "Lower_95": np.round(np.percentile(sims, 2.5, axis=0), 4),
+            "Upper_95": np.round(np.percentile(sims, 97.5, axis=0), 4),
+        })

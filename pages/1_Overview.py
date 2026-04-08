@@ -7,7 +7,8 @@ import requests
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-from src.ui_helpers import DARK_CSS, render_kpi_card, render_badge, plotly_dark_layout, API_BASE_URL
+from src.ui_helpers import DARK_CSS, render_kpi_card, render_badge, render_data_source, plotly_dark_layout, API_BASE_URL
+from src.historical_events import get_events_in_range
 
 st.set_page_config(page_title="Overview | UIP", page_icon="📊", layout="wide")
 st.markdown(DARK_CSS, unsafe_allow_html=True)
@@ -43,6 +44,7 @@ with st.sidebar:
     st.page_link("pages/7_Job_Risk_Predictor.py", label="🎯 Job Risk (AI)")
     st.page_link("pages/8_Job_Market_Pulse.py", label="📡 Market Pulse")
     st.page_link("pages/9_Geo_Career_Advisor.py", label="🗺️ Geo Career")
+    st.page_link("pages/10_Skill_Obsolescence.py", label="⚡ Skill Obsolescence")
 
 # ─── Page hero ─────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -57,8 +59,10 @@ if not data:
     st.error("⚠️ Cannot connect to API. Start: `uvicorn src.api:app --reload`")
     st.stop()
 
-baseline_df = pd.DataFrame(data["baseline"])
-indices = data.get("indices", {})
+baseline_df   = pd.DataFrame(data["baseline"])
+conf_df       = pd.DataFrame(data.get("baseline_confidence", []))
+indices       = data.get("indices", {})
+data_src      = data.get("data_source", "🟡 Offline — Local CSV")
 
 # ─── KPI Row ────────────────────────────────────────────────────────────────────
 peak = round(baseline_df["Predicted_Unemployment"].max(), 2)
@@ -79,9 +83,12 @@ with col3:
     st.markdown(render_kpi_card("📉", f"{horizon}-Year Outlook", f"{end_val}%", f"{'▲' if d6>0 else '▼'} {abs(d6)}pp", dtype), unsafe_allow_html=True)
 with col4:
     label = ew.split(" ", 1)[-1] if " " in ew else ew
-    badge_kind = "danger" if "High" in ew else "warning" if "Watch" in ew else "success"
-    delta_html = render_badge(ew, badge_kind)
     st.markdown(render_kpi_card("🚦", "Risk Status", label, delta_type="neutral"), unsafe_allow_html=True)
+
+st.markdown(
+    f'<div style="text-align:right; margin-bottom:0.5rem;">{render_data_source(data_src)}</div>',
+    unsafe_allow_html=True
+)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -89,34 +96,31 @@ st.markdown("<br>", unsafe_allow_html=True)
 st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 st.markdown('<div class="section-title">📈 Unemployment Forecast Trajectory</div>', unsafe_allow_html=True)
 
-years = baseline_df["Year"].tolist()
+years  = baseline_df["Year"].tolist()
 values = baseline_df["Predicted_Unemployment"].tolist()
-
-# Generate uncertainty bands (±1σ, ±2σ)
-sigma = np.linspace(0.1, 0.6, len(years))
 
 fig = go.Figure()
 
-if show_band:
-    # +2σ upper → fill to lower boundary (upper-2σ to lower-2σ outer band)
+# Real Monte Carlo confidence bands from API
+if show_band and not conf_df.empty and "Lower_95" in conf_df.columns:
+    c_years = conf_df["Year"].tolist()
     fig.add_trace(go.Scatter(
-        x=years + years[::-1],
-        y=[v + 2*s for v, s in zip(values, sigma)] + [v - 2*s for v, s in zip(values[::-1], sigma[::-1])],
+        x=c_years + c_years[::-1],
+        y=conf_df["Upper_95"].tolist() + conf_df["Lower_95"].tolist()[::-1],
         fill="toself",
         fillcolor="rgba(99,102,241,0.06)",
         line=dict(color="rgba(0,0,0,0)"),
-        name="95% CI",
+        name="95% CI (Monte Carlo)",
         hoverinfo="skip",
         showlegend=True,
     ))
-    # +1σ inner band
     fig.add_trace(go.Scatter(
-        x=years + years[::-1],
-        y=[v + s for v, s in zip(values, sigma)] + [v - s for v, s in zip(values[::-1], sigma[::-1])],
+        x=c_years + c_years[::-1],
+        y=conf_df["Upper_80"].tolist() + conf_df["Lower_80"].tolist()[::-1],
         fill="toself",
-        fillcolor="rgba(99,102,241,0.12)",
+        fillcolor="rgba(99,102,241,0.13)",
         line=dict(color="rgba(0,0,0,0)"),
-        name="68% CI",
+        name="80% CI (Monte Carlo)",
         hoverinfo="skip",
         showlegend=True,
     ))
@@ -130,22 +134,22 @@ fig.add_trace(go.Scatter(
     hovertemplate="<b>Year %{x}</b><br>Unemployment: %{y:.2f}%<extra></extra>",
 ))
 
-# Historical events overlay
+# Historical events overlay — loaded from curated events module
 if show_events:
-    events = [
-        (2008, 8.0, "2008 GFC"),
-        (2020, 7.5, "COVID-19"),
-        (2016, 6.0, "Demonetization"),
-    ]
-    for year, y_pos, label in events:
-        if min(years) <= year <= max(years):
-            fig.add_vline(x=year, line=dict(color="rgba(245,158,11,0.4)", width=1.5, dash="dot"))
-            fig.add_annotation(
-                x=year, y=y_pos, text=label,
-                showarrow=False, font=dict(size=10, color="#f59e0b"),
-                bgcolor="rgba(245,158,11,0.12)", bordercolor="rgba(245,158,11,0.3)",
-                borderwidth=1, borderpad=4,
-            )
+    events = get_events_in_range(min(years), max(years))
+    for ev in events:
+        year  = ev["year"]
+        color = ev.get("color", "#f59e0b")
+        fig.add_vline(
+            x=year,
+            line=dict(color=color.replace(")", ",0.35)").replace("rgb", "rgba"), width=1.5, dash="dot"),
+        )
+        fig.add_annotation(
+            x=year, y=max(values) * 0.95, text=ev["short"],
+            showarrow=False, font=dict(size=9, color=color),
+            bgcolor="rgba(0,0,0,0.35)", bordercolor=color + "55",
+            borderwidth=1, borderpad=3,
+        )
 
 fig.update_layout(**plotly_dark_layout(height=420))
 fig.update_layout(

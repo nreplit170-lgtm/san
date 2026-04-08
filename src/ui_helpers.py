@@ -1,6 +1,6 @@
 """
 ui_helpers.py
-Shared UI utilities: CSS, KPI cards, badges, and Plotly layout settings.
+Shared UI utilities: CSS, KPI cards, badges, Plotly layout, and animated counters.
 """
 
 API_BASE_URL = "http://localhost:8000"
@@ -64,9 +64,16 @@ DARK_CSS = """
     line-height: 1;
     margin-bottom: 0.3rem;
 }
-.kpi-delta-up   { font-size: 0.78rem; color: #ef4444 !important; font-weight: 600; }
-.kpi-delta-down { font-size: 0.78rem; color: #10b981 !important; font-weight: 600; }
-.kpi-delta-neutral { font-size: 0.78rem; color: #94a3b8 !important; font-weight: 600; }
+.kpi-delta-up     { font-size: 0.78rem; color: #ef4444 !important; font-weight: 600; }
+.kpi-delta-down   { font-size: 0.78rem; color: #10b981 !important; font-weight: 600; }
+.kpi-delta-neutral{ font-size: 0.78rem; color: #94a3b8 !important; font-weight: 600; }
+
+/* ── Animated KPI counter ───────────────────────────────────────────────────── */
+@keyframes countUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.kpi-animated { animation: countUp 0.6s ease-out both; }
 
 /* ── Section title ──────────────────────────────────────────────────────────── */
 .section-title {
@@ -98,7 +105,7 @@ DARK_CSS = """
     line-height: 1.6;
 }
 
-/* ── Badges ─────────────────────────────────────────────────────────────────── */
+/* ── Badges (canonical names) ───────────────────────────────────────────────── */
 .badge {
     display: inline-block;
     padding: 0.2rem 0.65rem;
@@ -107,11 +114,62 @@ DARK_CSS = """
     font-weight: 700;
     letter-spacing: 0.5px;
 }
-.badge-blue    { background: rgba(99,102,241,0.15); color: #818cf8 !important; border: 1px solid rgba(99,102,241,0.25); }
-.badge-green   { background: rgba(16,185,129,0.12); color: #34d399 !important; border: 1px solid rgba(16,185,129,0.2); }
-.badge-red     { background: rgba(239,68,68,0.12);  color: #f87171 !important; border: 1px solid rgba(239,68,68,0.2); }
-.badge-yellow  { background: rgba(245,158,11,0.12); color: #fbbf24 !important; border: 1px solid rgba(245,158,11,0.2); }
-.badge-purple  { background: rgba(139,92,246,0.12); color: #a78bfa !important; border: 1px solid rgba(139,92,246,0.2); }
+/* Canonical colour names */
+.badge-blue    { background: rgba(99,102,241,0.15);  color: #818cf8 !important; border: 1px solid rgba(99,102,241,0.25); }
+.badge-green   { background: rgba(16,185,129,0.12);  color: #34d399 !important; border: 1px solid rgba(16,185,129,0.2); }
+.badge-red     { background: rgba(239,68,68,0.12);   color: #f87171 !important; border: 1px solid rgba(239,68,68,0.2); }
+.badge-yellow  { background: rgba(245,158,11,0.12);  color: #fbbf24 !important; border: 1px solid rgba(245,158,11,0.2); }
+.badge-purple  { background: rgba(139,92,246,0.12);  color: #a78bfa !important; border: 1px solid rgba(139,92,246,0.2); }
+
+/* Semantic aliases — used by pages that pass danger/success/info/warning */
+.badge-success { background: rgba(16,185,129,0.12);  color: #34d399 !important; border: 1px solid rgba(16,185,129,0.2); }
+.badge-danger  { background: rgba(239,68,68,0.12);   color: #f87171 !important; border: 1px solid rgba(239,68,68,0.2); }
+.badge-info    { background: rgba(99,102,241,0.15);  color: #818cf8 !important; border: 1px solid rgba(99,102,241,0.25); }
+.badge-warning { background: rgba(245,158,11,0.12);  color: #fbbf24 !important; border: 1px solid rgba(245,158,11,0.2); }
+
+/* ── Skill chip ─────────────────────────────────────────────────────────────── */
+.skill-chip {
+    display: inline-block;
+    background: rgba(99,102,241,0.12);
+    border: 1px solid rgba(99,102,241,0.25);
+    color: #818cf8;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin: 0.2rem;
+}
+
+/* ── Timeline ───────────────────────────────────────────────────────────────── */
+.timeline-item {
+    display: flex;
+    gap: 1rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.timeline-content { flex: 1; }
+.timeline-year {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #6366f1;
+}
+.timeline-desc {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    line-height: 1.5;
+}
+
+/* ── Disclaimer banner ──────────────────────────────────────────────────────── */
+.disclaimer-banner {
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 14px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
 
 /* ── Streamlit overrides ─────────────────────────────────────────────────────── */
 .stButton > button {
@@ -133,15 +191,63 @@ DARK_CSS = """
     color: #e2e8f0 !important;
 }
 .stSlider > div > div > div { background: #6366f1 !important; }
+
+/* ── Data source pill ───────────────────────────────────────────────────────── */
+.data-source-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(16,185,129,0.08);
+    border: 1px solid rgba(16,185,129,0.2);
+    border-radius: 999px;
+    padding: 0.2rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #34d399;
+}
 </style>
 """
 
+# ---------------------------------------------------------------------------
+# Animated KPI counter (CSS-only, renders instantly on load)
+# ---------------------------------------------------------------------------
+COUNTER_JS = """
+<script>
+(function(){
+    const els = document.querySelectorAll('.kpi-value[data-target]');
+    els.forEach(el => {
+        const target = parseFloat(el.dataset.target);
+        const suffix = el.dataset.suffix || '';
+        const decimals = el.dataset.decimals ? parseInt(el.dataset.decimals) : 0;
+        let start = 0;
+        const duration = 800;
+        const step = (timestamp) => {
+            if (!start) start = timestamp;
+            const progress = Math.min((timestamp - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = (target * eased).toFixed(decimals) + suffix;
+            if (progress < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    });
+})();
+</script>
+"""
 
-def render_kpi_card(icon: str, label: str, value: str, subtitle: str = "", delta_type: str = "neutral") -> str:
+
+def render_kpi_card(
+    icon: str,
+    label: str,
+    value: str,
+    subtitle: str = "",
+    delta_type: str = "neutral",
+    animate: bool = False,
+) -> str:
     delta_class = f"kpi-delta-{delta_type}"
     subtitle_html = f'<div class="{delta_class}">{subtitle}</div>' if subtitle else ""
+    anim_class = " kpi-animated" if animate else ""
     return f"""
-<div class="kpi-card">
+<div class="kpi-card{anim_class}">
     <div class="kpi-icon">{icon}</div>
     <div class="kpi-label">{label}</div>
     <div class="kpi-value">{value}</div>
@@ -151,14 +257,23 @@ def render_kpi_card(icon: str, label: str, value: str, subtitle: str = "", delta
 
 
 def render_badge(text: str, color: str = "blue") -> str:
+    """
+    color accepts both canonical names (blue/green/red/yellow/purple)
+    and semantic aliases (success/danger/info/warning).
+    """
     return f'<span class="badge badge-{color}">{text}</span>'
 
 
-def plotly_dark_layout(height: int = 400) -> dict:
-    return dict(
+def render_data_source(label: str) -> str:
+    return f'<div class="data-source-pill">{label}</div>'
+
+
+def plotly_dark_layout(height: int = 400, showlegend: bool = True, **kwargs) -> dict:
+    base = dict(
         height=height,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
+        showlegend=showlegend,
         font=dict(color="#94a3b8", family="Inter, system-ui, sans-serif"),
         margin=dict(l=10, r=10, t=30, b=10),
         legend=dict(
@@ -178,3 +293,5 @@ def plotly_dark_layout(height: int = 400) -> dict:
             tickfont=dict(color="#64748b"),
         ),
     )
+    base.update(kwargs)
+    return base

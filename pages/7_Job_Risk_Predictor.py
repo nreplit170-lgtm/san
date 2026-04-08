@@ -34,6 +34,7 @@ with st.sidebar:
     st.page_link("pages/6_Model_Validation.py", label="🔬 Model Validation")
     st.page_link("pages/8_Job_Market_Pulse.py", label="📡 Market Pulse")
     st.page_link("pages/9_Geo_Career_Advisor.py", label="🗺️ Geo Career")
+    st.page_link("pages/10_Skill_Obsolescence.py", label="⚡ Skill Obsolescence")
 
 st.markdown("""
 <div class="page-hero">
@@ -43,6 +44,22 @@ st.markdown("""
         with reasons, suggestions, and what-if skill upgrades.
     </div>
 </div>""", unsafe_allow_html=True)
+
+st.markdown("""
+<div class="disclaimer-banner">
+    <div style="font-size:1.3rem; flex-shrink:0;">⚠️</div>
+    <div>
+        <div style="font-size:0.82rem; font-weight:700; color:#fbbf24; text-transform:uppercase;
+                    letter-spacing:1px; margin-bottom:0.3rem;">Model Disclaimer</div>
+        <div style="font-size:0.85rem; color:#94a3b8; line-height:1.55;">
+            This predictor is trained on <strong style="color:#e2e8f0;">synthetic data</strong> generated
+            from economic heuristics — not real employment records or survey data.
+            Risk scores are <em>illustrative estimates</em> for scenario planning only.
+            Do not use these results for actual hiring, termination, or career decisions.
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 col_form, col_out = st.columns([1, 1])
 

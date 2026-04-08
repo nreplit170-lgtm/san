@@ -27,6 +27,7 @@ with st.sidebar:
     st.page_link("pages/7_Job_Risk_Predictor.py", label="🎯 Job Risk (AI)")
     st.page_link("pages/8_Job_Market_Pulse.py", label="📡 Market Pulse")
     st.page_link("pages/9_Geo_Career_Advisor.py", label="🗺️ Geo Career")
+    st.page_link("pages/10_Skill_Obsolescence.py", label="⚡ Skill Obsolescence")
 
 st.markdown("""
 <div class="page-hero">
@@ -148,7 +149,7 @@ with col_radar:
         **plotly_dark_layout(height=280),
         polar=dict(
             bgcolor="rgba(0,0,0,0)",
-            radialaxis=dict(visible=True, range=[0, 1], gridcolor="rgba(255,255,255,0.08)",
+            radialaxis=dict(visible=True, range=[0, 100], gridcolor="rgba(255,255,255,0.08)",
                             tickfont=dict(color="#64748b", size=9)),
             angularaxis=dict(gridcolor="rgba(255,255,255,0.06)",
                              tickfont=dict(color="#94a3b8", size=10)),
@@ -187,15 +188,15 @@ for i, row in df.iterrows():
     col = cols[i % len(cols)]
     stress = row["Stress_Score"]
     res    = row["Resilience_Score"]
-    if stress >= 0.6:
+    if stress >= 60:
         badge = render_badge("🔴 High Risk", "danger")
-    elif stress >= 0.35:
+    elif stress >= 35:
         badge = render_badge("🟡 Moderate", "warning")
     else:
         badge = render_badge("🟢 Stable", "success")
 
-    sp = int(stress * 100)
-    rp = int(res * 100)
+    sp = int(min(100, stress))
+    rp = int(min(100, res))
 
     with col:
         st.markdown(f"""

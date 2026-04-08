@@ -3,7 +3,7 @@ ui_helpers.py
 Shared UI utilities: CSS, KPI cards, badges, Plotly layout, and animated counters.
 """
 
-API_BASE_URL = "http://localhost:8000"
+API_BASE_URL = "http://127.0.0.1:8000"
 
 DARK_CSS = """
 <style>

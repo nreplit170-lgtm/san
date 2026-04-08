@@ -125,13 +125,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─── API health check ──────────────────────────────────────────────────────────
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=10)
 def check_api_health():
-    try:
-        r = requests.get(f"{API_BASE_URL}/validate", timeout=4)
-        return r.status_code == 200, None
-    except Exception as e:
-        return False, str(e)
+    for attempt in range(2):
+        try:
+            r = requests.get(f"{API_BASE_URL}/data-status", timeout=5)
+            if r.status_code == 200:
+                return True, None
+        except Exception as e:
+            last_err = str(e)
+    return False, last_err
 
 @st.cache_data(ttl=60)
 def get_baseline_preview():

@@ -55,9 +55,18 @@ data/
 1. Scenario Simulator — compare two economic shock scenarios side by side
 2. Sector Analysis — RSSI heatmap and resilience scoring for 5 sectors
 3. Career Lab — skill recommendations from sector stress analysis
-4. AI Insights — narrative text from scenario indices
+4. AI Insights ✅ — narrative text, policy comparison, shock sensitivity table, export report
 5. Model Validation — backtest metrics (MAE, MAPE, RMSE, R²)
 6. Job Risk Predictor — logistic regression on user profile
 7. Job Market Pulse — skill demand trends from CSV job postings
 8. Geo Career Advisor — location-based job insights with maps
 9. Skill Obsolescence Detector — emerging vs declining skills over time
+
+## API Health Fix
+- `API_BASE_URL` changed to `http://127.0.0.1:8000` (avoids DNS delay, prevents "API Offline" on startup)
+- Health check TTL lowered to 10 s with 2-attempt retry via `/data-status` endpoint
+
+## Development Phases
+- Phase 1 (done): Features 1–3 (Simulator, Sector Analysis, Career Lab)
+- Phase 2 (done): Feature 4 (AI Insights — enhanced) + API health fix
+- Phase 3 (next): Features 5–9 (Model Validation, Job Risk, Market Pulse, Geo Career, Skill Obsolescence)

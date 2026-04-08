@@ -60,7 +60,7 @@ data/
 6. Job Risk Predictor ✅ — feature contribution chart, industry comparison, what-if skill upgrade diff, export report
 7. Job Market Pulse ✅ — skill momentum badges, location demand chart, skill gap analyzer, export
 8. Geo Career Advisor ✅ — Folium map, city volume+salary chart, LQ bar chart, coloured relocation ranking, all-tier risk comparison, export
-9. Skill Obsolescence Detector — emerging vs declining skills over time
+9. Skill Obsolescence Detector ✅ — statistical trend detection (scipy linregress), KPI summary, trend scatter, multi-skill timeline, personal skills-at-risk checker, export
 
 ## API Health Fix
 - `API_BASE_URL` changed to `http://127.0.0.1:8000` (avoids DNS delay, prevents "API Offline" on startup)
@@ -72,4 +72,4 @@ data/
 - Phase 3 (done): Feature 6 (Job Risk Predictor)
 - Phase 4 (done): Feature 7 (Job Market Pulse)
 - Phase 5 (done): Feature 8 (Geo Career Advisor)
-- Phase 6 (next): Feature 9 (Skill Obsolescence)
+- Phase 6 (done): Feature 9 (Skill Obsolescence) — ALL 9 FEATURES COMPLETE

@@ -56,7 +56,7 @@ data/
 2. Sector Analysis — RSSI heatmap and resilience scoring for 5 sectors
 3. Career Lab — skill recommendations from sector stress analysis
 4. AI Insights ✅ — narrative text, policy comparison, shock sensitivity table, export report
-5. Model Validation — backtest metrics (MAE, MAPE, RMSE, R²)
+5. Model Validation ✅ — backtest metrics, R² gauge, residuals chart, error distribution, year-by-year table, export report
 6. Job Risk Predictor — logistic regression on user profile
 7. Job Market Pulse — skill demand trends from CSV job postings
 8. Geo Career Advisor — location-based job insights with maps
@@ -68,5 +68,5 @@ data/
 
 ## Development Phases
 - Phase 1 (done): Features 1–3 (Simulator, Sector Analysis, Career Lab)
-- Phase 2 (done): Feature 4 (AI Insights — enhanced) + API health fix
-- Phase 3 (next): Features 5–9 (Model Validation, Job Risk, Market Pulse, Geo Career, Skill Obsolescence)
+- Phase 2 (done): Features 4–5 (AI Insights, Model Validation) + API health fix
+- Phase 3 (next): Features 6–9 (Job Risk, Market Pulse, Geo Career, Skill Obsolescence)

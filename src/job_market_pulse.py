@@ -210,6 +210,86 @@ def weekly_skill_trends(
     return pivot
 
 
+def skill_momentum(
+    df: pd.DataFrame,
+    top_n_skills: int = 15,
+    phrases: Optional[Sequence[str]] = None,
+    recent_weeks: int = 4,
+) -> pd.DataFrame:
+    """
+    For each top skill, compute total mentions in the most-recent N weeks vs
+    all earlier weeks to produce a momentum label and numeric delta.
+
+    Returns DataFrame with columns: skill, recent, earlier, delta_pct, momentum
+    """
+    if df.empty or "post_date" not in df.columns or df["post_date"].isna().all():
+        return pd.DataFrame()
+
+    phrases = list(phrases or skill_phrase_list())
+    overall = skill_demand_counts(df, phrases)
+    top_skills = list(overall.head(top_n_skills).index)
+    if not top_skills:
+        return pd.DataFrame()
+
+    df2 = df.dropna(subset=["post_date"]).copy()
+    df2["week"] = df2["post_date"].dt.to_period("W").apply(lambda p: p.start_time.date())
+    all_weeks = sorted(df2["week"].unique())
+    if len(all_weeks) < 2:
+        return pd.DataFrame()
+
+    cutoff = all_weeks[-min(recent_weeks, len(all_weeks) - 1)]
+    recent_df = df2[df2["week"] >= cutoff]
+    earlier_df = df2[df2["week"] < cutoff]
+
+    rows = []
+    for sk in top_skills:
+        r = sum(1 for blob in recent_df["_text"] if phrase_in_blob(sk, blob))
+        e = sum(1 for blob in earlier_df["_text"] if phrase_in_blob(sk, blob))
+        if e == 0 and r == 0:
+            continue
+        e_norm = max(e, 1)
+        delta_pct = round((r - e_norm) / e_norm * 100, 1)
+        if delta_pct >= 15:
+            momentum = "Rising"
+        elif delta_pct <= -15:
+            momentum = "Declining"
+        else:
+            momentum = "Stable"
+        rows.append({"skill": sk, "recent": r, "earlier": e, "delta_pct": delta_pct, "momentum": momentum})
+
+    if not rows:
+        return pd.DataFrame()
+    return pd.DataFrame(rows).sort_values("delta_pct", ascending=False).reset_index(drop=True)
+
+
+def location_demand_counts(df: pd.DataFrame, top_n: int = 12) -> pd.Series:
+    """Count postings by location."""
+    if df.empty or "location" not in df.columns:
+        return pd.Series(dtype=int)
+    counts = df["location"].dropna().astype(str).value_counts().head(top_n)
+    return counts[counts > 0]
+
+
+def skill_gap_analysis(
+    df: pd.DataFrame,
+    user_skills_text: str,
+    top_n: int = 15,
+) -> pd.DataFrame:
+    """
+    Compare top-demanded skills in postings against user's skill set.
+    Returns DataFrame with skill, demand_count, have (bool).
+    """
+    top_skills = skill_demand_counts(df).head(top_n)
+    if top_skills.empty:
+        return pd.DataFrame()
+    user_blob = user_skills_text.lower()
+    rows = []
+    for sk, cnt in top_skills.items():
+        have = phrase_in_blob(sk, user_blob)
+        rows.append({"Skill": sk, "Demand (postings)": int(cnt), "You have it": have})
+    return pd.DataFrame(rows)
+
+
 def salary_summary_by_role(df: pd.DataFrame) -> pd.DataFrame:
     """Uses salary_min_lpa / salary_max_lpa midpoint when both present."""
     if df.empty or "role_bucket" not in df.columns:

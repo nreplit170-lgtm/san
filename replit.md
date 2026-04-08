@@ -58,7 +58,7 @@ data/
 4. AI Insights ✅ — narrative text, policy comparison, shock sensitivity table, export report
 5. Model Validation ✅ — backtest metrics, R² gauge, residuals chart, error distribution, year-by-year table, export report
 6. Job Risk Predictor ✅ — feature contribution chart, industry comparison, what-if skill upgrade diff, export report
-7. Job Market Pulse — skill demand trends from CSV job postings
+7. Job Market Pulse ✅ — skill momentum badges, location demand chart, skill gap analyzer, export
 8. Geo Career Advisor — location-based job insights with maps
 9. Skill Obsolescence Detector — emerging vs declining skills over time
 
@@ -70,4 +70,5 @@ data/
 - Phase 1 (done): Features 1–3 (Simulator, Sector Analysis, Career Lab)
 - Phase 2 (done): Features 4–5 (AI Insights, Model Validation) + API health fix
 - Phase 3 (done): Feature 6 (Job Risk Predictor)
-- Phase 4 (next): Features 7–9 (Market Pulse, Geo Career, Skill Obsolescence)
+- Phase 4 (done): Feature 7 (Job Market Pulse)
+- Phase 5 (next): Features 8–9 (Geo Career, Skill Obsolescence)

@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from src.ui_helpers import DARK_CSS, render_kpi_card, render_badge, plotly_dark_layout, API_BASE_URL
 from src.live_data import fetch_sector_indicators
+from src.live_insights import generate_sector_insights
 
 st.set_page_config(page_title="Sector Analysis | UIP", page_icon="🏭", layout="wide")
 st.markdown(DARK_CSS, unsafe_allow_html=True)
@@ -260,6 +261,29 @@ with tab_live:
     if live_df.empty:
         st.warning("Could not retrieve live sector data. Please check your internet connection.")
         st.stop()
+
+    # ─── AI Insight Box ─────────────────────────────────────────────────────────
+    sector_insights = generate_sector_insights(live_df)
+    if sector_insights:
+        bullets_html = "".join(
+            f'<li style="margin-bottom:0.45rem; color:#cbd5e1; font-size:0.9rem; line-height:1.6;">'
+            + s.replace("**", "<strong style='color:#e2e8f0;'>", 1).replace("**", "</strong>", 1)
+            + "</li>"
+            for s in sector_insights
+        )
+        st.markdown(f"""
+        <div style="background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.22);
+                    border-radius:14px; padding:1rem 1.5rem; margin-bottom:1.4rem;">
+            <div style="display:flex; gap:0.6rem; align-items:center; margin-bottom:0.6rem;">
+                <span style="font-size:1.1rem;">💡</span>
+                <span style="font-size:0.78rem; font-weight:700; color:#34d399;
+                              text-transform:uppercase; letter-spacing:1px;">
+                    Sector Intelligence — Key Insights
+                </span>
+            </div>
+            <ul style="margin:0; padding-left:1.2rem;">{bullets_html}</ul>
+        </div>
+        """, unsafe_allow_html=True)
 
     # ─── KPI strip ──────────────────────────────────────────────────────────────
     live_valid_emp = live_df.dropna(subset=["Employment_Share"])

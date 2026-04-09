@@ -23,6 +23,7 @@ from src.job_market_pulse import (
     weekly_skill_trends,
 )
 from src.live_data import fetch_labor_market_pulse, LABOR_MARKET_INDICATORS
+from src.live_insights import generate_labor_market_insights
 from src.ui_helpers import DARK_CSS, render_kpi_card, plotly_dark_layout
 
 st.set_page_config(page_title="Market Pulse | UIP", page_icon="📡", layout="wide")
@@ -340,6 +341,29 @@ with tab_live:
     if not live_data:
         st.error("Could not fetch data from World Bank API. Check internet connectivity.")
         st.stop()
+
+    # ── AI Insight Box ─────────────────────────────────────────────────────────
+    labor_insights = generate_labor_market_insights(live_data)
+    if labor_insights:
+        bullets_html = "".join(
+            f'<li style="margin-bottom:0.45rem; color:#cbd5e1; font-size:0.9rem; line-height:1.6;">'
+            + s.replace("**", "<strong style='color:#e2e8f0;'>", 1).replace("**", "</strong>", 1)
+            + "</li>"
+            for s in labor_insights
+        )
+        st.markdown(f"""
+        <div style="background:rgba(99,102,241,0.07); border:1px solid rgba(99,102,241,0.25);
+                    border-radius:14px; padding:1rem 1.5rem; margin-bottom:1.4rem;">
+            <div style="display:flex; gap:0.6rem; align-items:center; margin-bottom:0.6rem;">
+                <span style="font-size:1.1rem;">💡</span>
+                <span style="font-size:0.78rem; font-weight:700; color:#818cf8;
+                              text-transform:uppercase; letter-spacing:1px;">
+                    Labor Market Intelligence — Key Insights
+                </span>
+            </div>
+            <ul style="margin:0; padding-left:1.2rem;">{bullets_html}</ul>
+        </div>
+        """, unsafe_allow_html=True)
 
     # ── KPI strip: most-recent value for key indicators
     KEY_KPIS = [

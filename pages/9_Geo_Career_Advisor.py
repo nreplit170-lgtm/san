@@ -27,6 +27,7 @@ from src.geo_career_advisor import (
 from src.job_market_pulse import load_job_postings
 from src.job_risk_model import EDUCATION_LEVELS, INDUSTRY_GROWTH, LOCATION_OPTIONS, predict_job_risk
 from src.live_data import fetch_labor_market_pulse, get_state_unemployment
+from src.live_insights import generate_labor_market_insights
 from src.ui_helpers import DARK_CSS, plotly_dark_layout, render_kpi_card
 
 st.set_page_config(page_title="Geo Career | UIP", page_icon="🗺️", layout="wide")
@@ -399,6 +400,29 @@ with tab4:
 
     with st.spinner("Fetching live data from World Bank…"):
         wb_data = fetch_labor_market_pulse("India")
+
+    # ── AI Insight Box ─────────────────────────────────────────────────────────
+    geo_insights = generate_labor_market_insights(wb_data)
+    if geo_insights:
+        bullets_html = "".join(
+            f'<li style="margin-bottom:0.45rem; color:#cbd5e1; font-size:0.9rem; line-height:1.6;">'
+            + s.replace("**", "<strong style='color:#e2e8f0;'>", 1).replace("**", "</strong>", 1)
+            + "</li>"
+            for s in geo_insights
+        )
+        st.markdown(f"""
+        <div style="background:rgba(99,102,241,0.07); border:1px solid rgba(99,102,241,0.25);
+                    border-radius:14px; padding:1rem 1.5rem; margin-bottom:1.4rem;">
+            <div style="display:flex; gap:0.6rem; align-items:center; margin-bottom:0.6rem;">
+                <span style="font-size:1.1rem;">💡</span>
+                <span style="font-size:0.78rem; font-weight:700; color:#818cf8;
+                              text-transform:uppercase; letter-spacing:1px;">
+                    India Labor Market Context — What This Means for Your City Choice
+                </span>
+            </div>
+            <ul style="margin:0; padding-left:1.2rem;">{bullets_html}</ul>
+        </div>
+        """, unsafe_allow_html=True)
 
     KEY_KPIS = [
         ("Unemployment Rate (%)",       "📊", "neutral"),

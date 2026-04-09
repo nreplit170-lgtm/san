@@ -1,6 +1,7 @@
 """
 Page 1 — Overview Dashboard
-Live KPIs, forecast trajectory with confidence bands, historical event overlays.
+Live KPIs, forecast trajectory with confidence bands, historical event overlays,
+and an evidence-based forecast seeded from real World Bank historical data.
 """
 import streamlit as st
 import requests
@@ -9,6 +10,9 @@ import numpy as np
 import plotly.graph_objects as go
 from src.ui_helpers import DARK_CSS, render_kpi_card, render_badge, render_data_source, plotly_dark_layout, API_BASE_URL
 from src.historical_events import get_events_in_range
+from src.live_data import fetch_world_bank
+from src.forecasting import ForecastingEngine
+from src.live_insights import generate_forecast_insights
 
 st.set_page_config(page_title="Overview | UIP", page_icon="📊", layout="wide")
 st.markdown(DARK_CSS, unsafe_allow_html=True)
@@ -191,3 +195,169 @@ with col_r:
     ).round(2)
     st.dataframe(display_df, use_container_width=True, hide_index=True, height=260)
     st.markdown("</div>", unsafe_allow_html=True)
+
+# ─── Evidence-Based Real-Data Forecast ─────────────────────────────────────────
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+st.markdown('<div class="section-title">🔮 Evidence-Based Forecast — Seeded from Real World Bank Data</div>',
+            unsafe_allow_html=True)
+st.markdown("""
+<div style="font-size:0.85rem; color:#64748b; margin-bottom:1rem; line-height:1.6;">
+    Unlike the simulation above (which uses a baseline scenario), this forecast trains the
+    <strong style="color:#94a3b8;">ensemble forecasting engine directly on India's actual
+    World Bank unemployment data (1991–present)</strong>, then projects forward with
+    Monte Carlo confidence bands — grounding the outlook in historical evidence.
+</div>
+""", unsafe_allow_html=True)
+
+@st.cache_data(ttl=86400, show_spinner=False)
+def get_real_forecast(fc_horizon: int):
+    wb_df = fetch_world_bank("India")
+    if wb_df.empty:
+        return None, None
+    wb_df = wb_df.sort_values("Year").tail(35).copy()
+    wb_df["Unemployment_Smoothed"] = (
+        wb_df["Unemployment_Rate"]
+        .rolling(3, min_periods=1, center=True)
+        .mean()
+        .round(4)
+    )
+    engine = ForecastingEngine(forecast_horizon=fc_horizon, method="ensemble")
+    fc_df = engine.forecast_with_confidence(wb_df)
+    return wb_df, fc_df
+
+fc_horizon_real = st.slider("Forecast horizon (real-data)", 3, 8, 5, key="real_fc_horizon")
+
+with st.spinner("Running evidence-based forecast on real World Bank data…"):
+    hist_df, fc_df_real = get_real_forecast(fc_horizon_real)
+
+if hist_df is None or fc_df_real is None:
+    st.warning("Could not fetch World Bank data. Check connectivity.")
+else:
+    # ── Insights box
+    fc_insights = generate_forecast_insights(hist_df, fc_df_real)
+    if fc_insights:
+        bullets_html = "".join(
+            f'<li style="margin-bottom:0.45rem; color:#cbd5e1; font-size:0.9rem; line-height:1.6;">'
+            + s.replace("**", "<strong style='color:#e2e8f0;'>", 1).replace("**", "</strong>", 1)
+            + "</li>"
+            for s in fc_insights
+        )
+        st.markdown(f"""
+        <div style="background:rgba(245,158,11,0.07); border:1px solid rgba(245,158,11,0.25);
+                    border-radius:14px; padding:1rem 1.5rem; margin-bottom:1.4rem;">
+            <div style="display:flex; gap:0.6rem; align-items:center; margin-bottom:0.6rem;">
+                <span style="font-size:1.1rem;">💡</span>
+                <span style="font-size:0.78rem; font-weight:700; color:#f59e0b;
+                              text-transform:uppercase; letter-spacing:1px;">
+                    Forecast Intelligence — Evidence-Based Reading
+                </span>
+            </div>
+            <ul style="margin:0; padding-left:1.2rem;">{bullets_html}</ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ── Combined historical + forecast chart
+    fig_real = go.Figure()
+
+    # Historical actual data
+    fig_real.add_trace(go.Scatter(
+        x=hist_df["Year"],
+        y=hist_df["Unemployment_Rate"],
+        mode="lines+markers",
+        name="Historical (World Bank)",
+        line=dict(color="#10b981", width=2.5),
+        marker=dict(size=5, color="#10b981"),
+        hovertemplate="<b>%{x}</b><br>Actual: %{y:.2f}%<extra></extra>",
+    ))
+
+    # 80% confidence band
+    fc_years  = fc_df_real["Year"].tolist()
+    fig_real.add_trace(go.Scatter(
+        x=fc_years + fc_years[::-1],
+        y=fc_df_real["Upper_80"].tolist() + fc_df_real["Lower_80"].tolist()[::-1],
+        fill="toself",
+        fillcolor="rgba(99,102,241,0.12)",
+        line=dict(color="rgba(0,0,0,0)"),
+        name="80% Confidence Band",
+        hoverinfo="skip",
+    ))
+
+    # 95% confidence band
+    fig_real.add_trace(go.Scatter(
+        x=fc_years + fc_years[::-1],
+        y=fc_df_real["Upper_95"].tolist() + fc_df_real["Lower_95"].tolist()[::-1],
+        fill="toself",
+        fillcolor="rgba(99,102,241,0.05)",
+        line=dict(color="rgba(0,0,0,0)"),
+        name="95% Confidence Band",
+        hoverinfo="skip",
+    ))
+
+    # Forecast central estimate
+    fig_real.add_trace(go.Scatter(
+        x=fc_df_real["Year"],
+        y=fc_df_real["Predicted_Unemployment"],
+        mode="lines+markers",
+        name="Ensemble Forecast",
+        line=dict(color="#6366f1", width=3, dash="dot"),
+        marker=dict(size=7, color="#818cf8", symbol="diamond"),
+        hovertemplate="<b>%{x} (forecast)</b><br>Central: %{y:.2f}%<extra></extra>",
+    ))
+
+    # Divider line at the forecast start
+    last_hist_yr = int(hist_df["Year"].iloc[-1])
+    fig_real.add_vline(
+        x=last_hist_yr + 0.5,
+        line=dict(color="rgba(148,163,184,0.4)", width=1.5, dash="dash"),
+    )
+    fig_real.add_annotation(
+        x=last_hist_yr + 0.5,
+        y=hist_df["Unemployment_Rate"].max() * 0.96,
+        text="← History | Forecast →",
+        showarrow=False,
+        font=dict(size=10, color="#64748b"),
+        bgcolor="rgba(0,0,0,0.4)",
+        borderpad=4,
+    )
+
+    fig_real.update_layout(
+        **plotly_dark_layout(height=440),
+        xaxis_title="Year",
+        yaxis_title="Unemployment Rate (%)",
+        legend=dict(
+            orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+            bgcolor="rgba(0,0,0,0.3)", font=dict(color="#cbd5e1"),
+        ),
+    )
+    st.plotly_chart(fig_real, use_container_width=True)
+
+    # ── Side-by-side: forecast table + method explanation
+    col_fc1, col_fc2 = st.columns([1, 1])
+    with col_fc1:
+        st.markdown("**Forecast values**")
+        fc_display = fc_df_real[["Year", "Predicted_Unemployment", "Lower_80", "Upper_80"]].round(2)
+        fc_display.columns = ["Year", "Central (%)", "Lower 80% (%)", "Upper 80% (%)"]
+        st.dataframe(fc_display, use_container_width=True, hide_index=True)
+    with col_fc2:
+        st.markdown("**How this works**")
+        st.markdown("""
+        <div style="font-size:0.85rem; color:#94a3b8; line-height:1.7;">
+            <strong style="color:#e2e8f0;">Ensemble model</strong> combines three methods:<br>
+            &nbsp;&nbsp;• 50% Trend + Mean Reversion<br>
+            &nbsp;&nbsp;• 30% ARIMA-inspired<br>
+            &nbsp;&nbsp;• 20% Exponential Smoothing<br><br>
+            <strong style="color:#e2e8f0;">Confidence bands</strong> use 500-run Monte Carlo
+            simulation seeded from historical residual volatility.<br><br>
+            <strong style="color:#e2e8f0;">Data source:</strong> World Bank Open Data
+            (SL.UEM.TOTL.ZS), no API key required.
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.caption(
+        "Note: This forecast reflects historical trends — it does not incorporate policy changes, "
+        "shocks, or structural breaks not already present in the data. Use the Simulator page "
+        "to layer shocks on top of this baseline."
+    )
+
+st.markdown("</div>", unsafe_allow_html=True)

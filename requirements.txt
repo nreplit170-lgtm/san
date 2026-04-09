@@ -24,3 +24,16 @@ streamlit
 streamlit-folium
 streamlit-lottie
 uvicorn
+fastapi
+folium
+geopy
+numpy
+pandas
+plotly
+requests
+scikit-learn
+scipy
+streamlit
+streamlit-folium
+streamlit-lottie
+uvicorn

@@ -1,3 +1,4 @@
+import math
 from typing import Optional
 
 from fastapi import FastAPI
@@ -156,7 +157,8 @@ def backtest_model(request: BacktestRequest):
         "historical": test_df.to_dict(orient="records"),
         "backtest": merged.to_dict(orient="records"),
         "mae": round(mae, 3),
-        "mape": round(mape, 2) if mape == mape else None,
+        # math.isfinite catches both NaN and inf (inf when actual rate ≈ 0).
+        "mape": round(mape, 2) if math.isfinite(mape) else None,
     }
 
 
@@ -164,7 +166,12 @@ def backtest_model(request: BacktestRequest):
 @app.get("/validate")
 def validate_model():
     df = _load_prepared_series()
-    split_idx = int(len(df) * 0.4)
+    # Train on 75%, test on 25% — standard walk-forward convention.
+    # The old 40/60 split was backwards: testing on more years than trained caused
+    # R² to appear deeply negative even for a well-calibrated model.
+    split_idx = int(len(df) * 0.75)
+    split_idx = max(split_idx, len(df) - 8)   # always keep at least 8 years for training
+    split_idx = min(split_idx, len(df) - 2)   # always keep at least 2 years for testing
     train_df = df.iloc[:split_idx]
     test_df = df.iloc[split_idx:]
 

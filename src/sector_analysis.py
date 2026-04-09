@@ -47,8 +47,11 @@ class SectorAnalysis:
             sensitivity = cfg["shock_sensitivity"]
             base_resilience = cfg["base_resilience"]
 
-            # Stress = severity × sensitivity × shock amplifier, capped at 100
-            raw_stress = severity_ratio * sensitivity * (1.0 + shock_intensity * 0.5) * 100.0
+            # Stress = severity × sensitivity, capped at 100.
+            # severity_ratio is derived from the scenario peak, which already
+            # encodes shock_intensity — multiplying by (1 + shock_intensity) again
+            # was double-counting the shock and inflating scores by up to 50%.
+            raw_stress = severity_ratio * sensitivity * 100.0
             stress = round(min(100.0, raw_stress), 1)
 
             # Resilience reduced by stress proportion, boosted by fast recovery

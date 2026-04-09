@@ -190,7 +190,8 @@ class JobRiskResult:
     features: Dict[str, Any]
     reasons: List[str]
     suggestions: List[str]
-    contributions: Dict[str, float] = None
+    # Optional — callers must None-check before calling .items().
+    contributions: Optional[Dict[str, float]] = None
 
 
 def _risk_level_from_prob(p: float) -> str:
@@ -222,12 +223,24 @@ def _train_pipeline() -> Pipeline:
 
 _PIPE: Optional[Pipeline] = None
 
+# Precompute feature means once at module load — used for contribution attribution.
+# _synthetic_dataset() is deterministic (seed=42), so means are always identical;
+# recomputing them inside predict_job_risk() every call was pure waste.
+_FEATURE_MEANS: Optional[np.ndarray] = None
+
 
 def get_pipeline() -> Pipeline:
-    global _PIPE
+    global _PIPE, _FEATURE_MEANS
     if _PIPE is None:
         _PIPE = _train_pipeline()
+        X_all, _ = _synthetic_dataset()
+        _FEATURE_MEANS = X_all.mean(axis=0)
     return _PIPE
+
+
+def _get_feature_means() -> np.ndarray:
+    get_pipeline()   # ensures _FEATURE_MEANS is populated
+    return _FEATURE_MEANS
 
 
 def _linear_contributions(
@@ -257,8 +270,8 @@ def predict_job_risk(
     proba = float(pipe.predict_proba(X_row)[0, 1])
     level = _risk_level_from_prob(proba)
 
-    X_all, _ = _synthetic_dataset()
-    means = X_all.mean(axis=0)
+    # Use precomputed means — no need to regenerate 3,500-sample dataset each call.
+    means = _get_feature_means()
     contribs = _linear_contributions(pipe, X_row, means)
     sorted_c = sorted(contribs.items(), key=lambda kv: abs(kv[1]), reverse=True)
 

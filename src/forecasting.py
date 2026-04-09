@@ -87,14 +87,20 @@ class ForecastingEngine:
 
     def _arima_inspired(self, df: pd.DataFrame) -> list:
         series = df["Unemployment_Smoothed"].values
-        trend = series[-1] - series[-min(5, len(series))]
+        # Compute per-step (annual) trend, not the raw N-year total difference.
+        # The old code used the 5-year total and multiplied by 0.3 each step,
+        # which added ~1.2× the correct annual rate each year instead of ~0.3×.
+        n_lookback = min(5, len(series))
+        n_intervals = max(1, n_lookback - 1)
+        annual_trend = (series[-1] - series[-n_lookback]) / n_intervals
         historical_mean = series.mean()
         last_value = series[-1]
         predictions = []
         value = last_value
         for i in range(self.forecast_horizon):
             reversion_factor = (i + 1) / (self.forecast_horizon + 3)
-            value = value + trend * 0.3 - (value - historical_mean) * 0.1 * reversion_factor
+            # 0.3 is the AR dampening weight on the annual trend component.
+            value = value + annual_trend * 0.3 - (value - historical_mean) * 0.1 * reversion_factor
             predictions.append(max(0.0, value))
         return predictions
 

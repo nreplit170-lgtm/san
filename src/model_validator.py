@@ -38,7 +38,9 @@ class ModelValidator:
 
         ss_res = np.sum(errors ** 2)
         ss_tot = np.sum((actual - actual.mean()) ** 2)
-        r2 = float(1 - ss_res / ss_tot) if ss_tot > 0 else 0.0
+        # When all actual values are identical ss_tot=0, R² is mathematically
+        # undefined (0÷0). Returning 0.0 falsely implies "no explanatory power".
+        r2 = float(1 - ss_res / ss_tot) if ss_tot > 1e-12 else None
 
         if len(actual) > 1:
             actual_dir = np.diff(actual) > 0
@@ -58,7 +60,7 @@ class ModelValidator:
             "mae": round(mae, 3),
             "mape": round(mape, 2) if not np.isnan(mape) else None,
             "rmse": round(rmse, 3),
-            "r2": round(r2, 4),
+            "r2": round(r2, 4) if r2 is not None else None,
             "directional_accuracy": round(directional_accuracy, 1) if directional_accuracy is not None else None,
             "forecast_bias": round(forecast_bias, 3),
             "detail": detail,

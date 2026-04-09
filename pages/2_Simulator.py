@@ -37,7 +37,10 @@ st.markdown("""
 </div>""", unsafe_allow_html=True)
 
 SCENARIO_PRESETS = {
-    "Baseline (Natural Flow)":  dict(si=0.0, sd=0, rr=0.0),
+    # rr=0.05 matches the slider minimum — the old rr=0.0 was silently clamped
+    # to 0.05 by max(0.05, ...) below, creating a mismatch between the visible
+    # preset value and what was actually sent to the API.
+    "Baseline (Natural Flow)":  dict(si=0.0, sd=0, rr=0.05),
     "Severe Economic Shock":    dict(si=0.5, sd=3, rr=0.2),
     "Moderate Recession":       dict(si=0.3, sd=2, rr=0.3),
     "Policy Intervention":      dict(si=0.2, sd=2, rr=0.45),

@@ -49,20 +49,42 @@ class ScenarioMetrics:
 
     @staticmethod
     def compute_rqi(scenario_df: pd.DataFrame, recovery_rate: float) -> dict:
-        """Recovery Quality Index — characterises speed and sustainability of recovery."""
-        if recovery_rate >= 0.45:
+        """Recovery Quality Index — characterises speed and sustainability of recovery.
+
+        Label is now derived from the actual scenario OUTPUT trajectory, not the input
+        recovery_rate slider. Two scenarios with the same recovery_rate but different
+        shock intensities previously received identical labels despite very different
+        real outcomes. The recovered_fraction metric measures what share of the
+        peak shock excess was unwound by the end of the forecast horizon.
+        """
+        vals = scenario_df["Scenario_Unemployment"].values
+        peak = float(vals.max())
+        end = float(vals[-1])
+        start = float(vals[0])
+
+        # What fraction of the peak-above-start excess was recovered by end of period?
+        shock_size = peak - start
+        if shock_size > 1e-6:
+            recovered_fraction = float(np.clip((peak - end) / shock_size, 0.0, 1.0))
+        else:
+            recovered_fraction = 1.0   # negligible shock — trivially "recovered"
+
+        if recovered_fraction >= 0.70:
             label = "Fast Recovery"
-        elif recovery_rate >= 0.30:
+        elif recovered_fraction >= 0.40:
             label = "Moderate Recovery"
-        elif recovery_rate >= 0.15:
+        elif recovered_fraction >= 0.20:
             label = "Slow Recovery"
         else:
             label = "Poor Recovery"
 
-        # Override if trajectory is still rising at end (fragile recovery)
-        if len(scenario_df) >= 3:
-            last_vals = scenario_df["Scenario_Unemployment"].iloc[-3:].values
-            if last_vals[-1] > last_vals[-2] > last_vals[-3]:
+        # Fragile override: trajectory still rising monotonically at end of horizon.
+        if len(vals) >= 3:
+            if vals[-1] > vals[-2] > vals[-3]:
                 label = "Fast but Fragile"
 
-        return {"rqi_label": label, "recovery_rate_used": recovery_rate}
+        return {
+            "rqi_label": label,
+            "recovery_rate_used": recovery_rate,
+            "recovered_fraction": round(recovered_fraction, 3),
+        }

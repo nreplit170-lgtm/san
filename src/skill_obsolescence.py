@@ -120,6 +120,16 @@ def detect_skill_obsolescence(
 
     pivot = pivot[top_skills]
     t = np.arange(len(pivot), dtype=float)
+
+    # Compute a consistent emergence target BEFORE the skill loop.
+    # Previously, each skill's target was last_v * 2, meaning a skill at 50
+    # mentions had to reach 100 while a skill at 5 only needed to reach 10 —
+    # making estimated months structurally incomparable across skills.
+    # Using the 75th-percentile last-bucket value gives every skill the same bar:
+    # "reach top-quartile demand among all analysed skills."
+    last_vals_all = [float(pivot[sk].values[-1]) for sk in top_skills]
+    target_emerge = float(np.percentile(last_vals_all, 75)) if last_vals_all else 0.0
+
     rows = []
 
     for skill in top_skills:
@@ -154,7 +164,8 @@ def detect_skill_obsolescence(
             category = "Stable"
 
         months_fade = _months_to_threshold(last_v, slope_raw, fade_threshold_mentions, freq, "fade")
-        months_emerge = _months_to_threshold(last_v, slope_raw, last_v * 2, freq, "emerge")
+        # Use the pre-computed 75th-percentile target for a consistent emergence bar.
+        months_emerge = _months_to_threshold(last_v, slope_raw, target_emerge, freq, "emerge")
 
         rows.append({
             "skill": skill,

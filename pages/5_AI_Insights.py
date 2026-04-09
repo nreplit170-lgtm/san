@@ -124,6 +124,23 @@ indices  = data.get("indices", {})
 scen_df  = pd.DataFrame(data.get("scenario", []))
 source   = insights.get("source", "")
 
+# ─── AI Provider Status ────────────────────────────────────────────────────────
+import os as _os
+_groq_set   = bool(_os.environ.get("GROQ_API_KEY", "").strip())
+_gemini_set = bool(_os.environ.get("GEMINI_API_KEY", "").strip())
+_openai_set = bool(_os.environ.get("OPENAI_API_KEY", "").strip())
+_any_ai_set = _groq_set or _gemini_set or _openai_set
+
+if not _any_ai_set:
+    st.info(
+        "**🔑 No AI key detected — using rule-based insights.**  \n"
+        "To unlock real AI narratives for free, add one of these secrets:  \n"
+        "• **GROQ_API_KEY** — free, no credit card · [console.groq.com](https://console.groq.com)  \n"
+        "• **GEMINI_API_KEY** — free with Google account · [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)  \n"
+        "• **OPENAI_API_KEY** — paid premium · [platform.openai.com](https://platform.openai.com)",
+        icon="💡",
+    )
+
 
 # ─── KPI Row ──────────────────────────────────────────────────────────────────
 rqi  = indices.get("rqi_label", "N/A")
@@ -146,7 +163,14 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 # ─── AI Summary Banner ────────────────────────────────────────────────────────
 summary = insights.get("summary", "")
-source_badge_color = "blue" if "GPT" in source else "yellow"
+if "GPT" in source or "OpenAI" in source:
+    source_badge_color = "blue"
+elif "Groq" in source or "LLaMA" in source:
+    source_badge_color = "green"
+elif "Gemini" in source:
+    source_badge_color = "purple"
+else:
+    source_badge_color = "yellow"
 source_label = source if source else "📐 Rule-based"
 
 if summary:

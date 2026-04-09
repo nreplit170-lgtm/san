@@ -160,8 +160,8 @@ if not agg.empty:
                 color="#34d399",
             )
         )
+    fig_city.update_layout(**plotly_dark_layout(height=380))
     fig_city.update_layout(
-        **plotly_dark_layout(height=380),
         xaxis_title="City",
         yaxis_title="Job postings",
         legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
@@ -476,8 +476,8 @@ with tab4:
                 line=dict(color="#f59e0b", width=2, dash="dot"),
                 hovertemplate="<b>Year: %{x}</b><br>Youth: %{y:.2f}%<extra></extra>",
             ))
+        fig_ue.update_layout(**plotly_dark_layout(height=360))
         fig_ue.update_layout(
-            **plotly_dark_layout(height=360),
             xaxis_title="Year", yaxis_title="Unemployment Rate (%)",
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
                         bgcolor="rgba(0,0,0,0.3)", font=dict(color="#cbd5e1")),
@@ -532,8 +532,8 @@ with tab4:
             x=state_plot["State"], y=state_plot["Rural_UE"],
             name="Rural", marker_color="#10b981",
         ))
+        fig_urvr.update_layout(**plotly_dark_layout(height=420))
         fig_urvr.update_layout(
-            **plotly_dark_layout(height=420),
             barmode="group",
             xaxis_title="State", yaxis_title="Unemployment Rate (%)",
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,

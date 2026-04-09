@@ -321,8 +321,8 @@ else:
         borderpad=4,
     )
 
+    fig_real.update_layout(**plotly_dark_layout(height=440))
     fig_real.update_layout(
-        **plotly_dark_layout(height=440),
         xaxis_title="Year",
         yaxis_title="Unemployment Rate (%)",
         legend=dict(

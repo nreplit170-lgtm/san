@@ -425,8 +425,8 @@ with tab_live:
                 marker=dict(size=5, color=color),
                 hovertemplate=f"<b>{lbl}</b><br>Year: %{{x}}<br>Value: %{{y:.2f}}%<extra></extra>",
             ))
+        fig_ts.update_layout(**plotly_dark_layout(height=420))
         fig_ts.update_layout(
-            **plotly_dark_layout(height=420),
             xaxis_title="Year",
             yaxis_title="Percent (%)",
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,

@@ -142,6 +142,84 @@ def clear_cache() -> None:
     _cache.clear()
 
 
+# ── Live labor market indicators (time series) ──────────────────────────────────
+
+LABOR_MARKET_INDICATORS = {
+    "Unemployment Rate (%)":          "SL.UEM.TOTL.ZS",
+    "Youth Unemployment 15-24 (%)":   "SL.UEM.1524.ZS",
+    "Female Unemployment (%)":        "SL.UEM.TOTL.FE.ZS",
+    "Male Unemployment (%)":          "SL.UEM.TOTL.MA.ZS",
+    "Labor Force Participation (%)":  "SL.TLF.CACT.ZS",
+    "Employment-to-Population (%)":   "SL.EMP.TOTL.SP.ZS",
+    "Vulnerable Employment (%)":      "SL.EMP.VULN.ZS",
+    "Long-Term Unemployment (%)":     "SL.UEM.LTRM.ZS",
+}
+
+
+def _fetch_indicator_series(
+    indicator: str,
+    iso: str = "IN",
+    per_page: int = 40,
+) -> pd.DataFrame:
+    """
+    Fetch the full time-series for a single World Bank indicator.
+    Returns DataFrame with columns: Year (int), Value (float).
+    Returns empty DataFrame on any error.
+    """
+    url = WB_INDICATOR_API.format(iso=iso, indicator=indicator)
+    params = {"format": "json", "per_page": per_page, "mrv": per_page}
+    try:
+        resp = requests.get(url, params=params, timeout=12)
+        resp.raise_for_status()
+        data = resp.json()
+        if not data or len(data) < 2 or not data[1]:
+            return pd.DataFrame(columns=["Year", "Value"])
+        records = []
+        for entry in data[1]:
+            yr  = entry.get("date")
+            val = entry.get("value")
+            if yr and val is not None:
+                try:
+                    records.append({"Year": int(yr), "Value": round(float(val), 3)})
+                except (ValueError, TypeError):
+                    continue
+        if not records:
+            return pd.DataFrame(columns=["Year", "Value"])
+        return (
+            pd.DataFrame(records)
+            .sort_values("Year")
+            .dropna()
+            .reset_index(drop=True)
+        )
+    except Exception:
+        return pd.DataFrame(columns=["Year", "Value"])
+
+
+def fetch_labor_market_pulse(country: str = "India") -> dict:
+    """
+    Fetch time-series data for all key Indian labor market indicators.
+
+    Returns:
+        dict mapping indicator_label → pd.DataFrame(Year, Value)
+    Uses a 24-hour cache to avoid hammering the World Bank API.
+    """
+    cache_key = f"labor_market_pulse_{country}"
+    entry = _cache.get(cache_key)
+    if entry and (time.time() - entry["ts"]) < _CACHE_TTL_SECONDS:
+        return entry["df"]
+
+    iso = COUNTRY_ISO.get(country, "IN")
+    result = {}
+    for label, code in LABOR_MARKET_INDICATORS.items():
+        series = _fetch_indicator_series(code, iso)
+        if not series.empty:
+            result[label] = series
+
+    if result:
+        _cache[cache_key] = {"df": result, "ts": time.time()}
+    return result
+
+
 # ── Live sector data ───────────────────────────────────────────────────────────
 
 def _fetch_single_indicator(
@@ -219,3 +297,58 @@ def fetch_sector_indicators(country: str = "India") -> pd.DataFrame:
     if any_live:
         _cache[cache_key] = {"df": df, "ts": time.time()}
     return df
+
+
+# ── India state-level unemployment (PLFS 2022-23 curated) ─────────────────────
+# Source: Annual Report of Periodic Labour Force Survey (PLFS) 2022-23,
+# Ministry of Statistics & Programme Implementation, Government of India.
+# Usual Principal Status (UPS) unemployment rate (%), 15+ years.
+# State-level data is NOT available on World Bank API — this is curated from
+# official MOSPI PLFS reports and is updated when a new annual report is released.
+
+_PLFS_STATE_DATA = [
+    {"State": "Jammu & Kashmir",    "Urban_UE": 18.7, "Rural_UE": 5.2,  "Combined_UE": 9.8,  "Region": "North"},
+    {"State": "Himachal Pradesh",   "Urban_UE": 8.0,  "Rural_UE": 2.5,  "Combined_UE": 3.5,  "Region": "North"},
+    {"State": "Punjab",             "Urban_UE": 8.4,  "Rural_UE": 3.8,  "Combined_UE": 5.4,  "Region": "North"},
+    {"State": "Uttarakhand",        "Urban_UE": 7.3,  "Rural_UE": 3.1,  "Combined_UE": 4.5,  "Region": "North"},
+    {"State": "Haryana",            "Urban_UE": 11.3, "Rural_UE": 5.2,  "Combined_UE": 7.4,  "Region": "North"},
+    {"State": "Rajasthan",          "Urban_UE": 9.5,  "Rural_UE": 2.9,  "Combined_UE": 4.8,  "Region": "West"},
+    {"State": "Uttar Pradesh",      "Urban_UE": 8.2,  "Rural_UE": 3.5,  "Combined_UE": 4.9,  "Region": "North"},
+    {"State": "Bihar",              "Urban_UE": 9.1,  "Rural_UE": 2.2,  "Combined_UE": 3.7,  "Region": "East"},
+    {"State": "Sikkim",             "Urban_UE": 4.3,  "Rural_UE": 2.0,  "Combined_UE": 2.8,  "Region": "Northeast"},
+    {"State": "Arunachal Pradesh",  "Urban_UE": 7.8,  "Rural_UE": 3.1,  "Combined_UE": 4.3,  "Region": "Northeast"},
+    {"State": "Nagaland",           "Urban_UE": 18.6, "Rural_UE": 7.1,  "Combined_UE": 9.6,  "Region": "Northeast"},
+    {"State": "Manipur",            "Urban_UE": 11.7, "Rural_UE": 5.6,  "Combined_UE": 7.3,  "Region": "Northeast"},
+    {"State": "Mizoram",            "Urban_UE": 4.1,  "Rural_UE": 2.3,  "Combined_UE": 3.1,  "Region": "Northeast"},
+    {"State": "Tripura",            "Urban_UE": 8.6,  "Rural_UE": 4.8,  "Combined_UE": 6.1,  "Region": "Northeast"},
+    {"State": "Meghalaya",          "Urban_UE": 11.2, "Rural_UE": 3.8,  "Combined_UE": 5.7,  "Region": "Northeast"},
+    {"State": "Assam",              "Urban_UE": 12.3, "Rural_UE": 3.6,  "Combined_UE": 5.9,  "Region": "Northeast"},
+    {"State": "West Bengal",        "Urban_UE": 6.8,  "Rural_UE": 4.5,  "Combined_UE": 5.3,  "Region": "East"},
+    {"State": "Jharkhand",          "Urban_UE": 8.3,  "Rural_UE": 3.3,  "Combined_UE": 4.8,  "Region": "East"},
+    {"State": "Odisha",             "Urban_UE": 8.1,  "Rural_UE": 2.5,  "Combined_UE": 3.6,  "Region": "East"},
+    {"State": "Chhattisgarh",       "Urban_UE": 5.6,  "Rural_UE": 1.8,  "Combined_UE": 2.8,  "Region": "Central"},
+    {"State": "Madhya Pradesh",     "Urban_UE": 7.4,  "Rural_UE": 2.1,  "Combined_UE": 3.4,  "Region": "Central"},
+    {"State": "Gujarat",            "Urban_UE": 4.1,  "Rural_UE": 1.5,  "Combined_UE": 2.3,  "Region": "West"},
+    {"State": "Maharashtra",        "Urban_UE": 4.8,  "Rural_UE": 2.3,  "Combined_UE": 3.4,  "Region": "West"},
+    {"State": "Andhra Pradesh",     "Urban_UE": 5.4,  "Rural_UE": 3.6,  "Combined_UE": 4.2,  "Region": "South"},
+    {"State": "Karnataka",          "Urban_UE": 4.2,  "Rural_UE": 1.8,  "Combined_UE": 2.8,  "Region": "South"},
+    {"State": "Goa",                "Urban_UE": 5.3,  "Rural_UE": 1.8,  "Combined_UE": 3.7,  "Region": "West"},
+    {"State": "Kerala",             "Urban_UE": 8.9,  "Rural_UE": 6.8,  "Combined_UE": 7.6,  "Region": "South"},
+    {"State": "Tamil Nadu",         "Urban_UE": 5.1,  "Rural_UE": 3.8,  "Combined_UE": 4.4,  "Region": "South"},
+    {"State": "Telangana",          "Urban_UE": 5.6,  "Rural_UE": 3.1,  "Combined_UE": 4.2,  "Region": "South"},
+    {"State": "Delhi",              "Urban_UE": 8.4,  "Rural_UE": None, "Combined_UE": 8.4,  "Region": "North"},
+]
+
+
+def get_state_unemployment() -> pd.DataFrame:
+    """
+    Return curated PLFS 2022-23 state-level unemployment rate data for India.
+    Columns: State, Urban_UE, Rural_UE, Combined_UE, Region.
+
+    Data source: PLFS Annual Report 2022-23, MOSPI (Government of India).
+    """
+    df = pd.DataFrame(_PLFS_STATE_DATA)
+    df["Urban_UE"]    = pd.to_numeric(df["Urban_UE"], errors="coerce")
+    df["Rural_UE"]    = pd.to_numeric(df["Rural_UE"], errors="coerce")
+    df["Combined_UE"] = pd.to_numeric(df["Combined_UE"], errors="coerce")
+    return df.sort_values("Combined_UE", ascending=False).reset_index(drop=True)

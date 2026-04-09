@@ -26,7 +26,8 @@ from src.geo_career_advisor import (
 )
 from src.job_market_pulse import load_job_postings
 from src.job_risk_model import EDUCATION_LEVELS, INDUSTRY_GROWTH, LOCATION_OPTIONS, predict_job_risk
-from src.ui_helpers import DARK_CSS, plotly_dark_layout
+from src.live_data import fetch_labor_market_pulse, get_state_unemployment
+from src.ui_helpers import DARK_CSS, plotly_dark_layout, render_kpi_card
 
 st.set_page_config(page_title="Geo Career | UIP", page_icon="🗺️", layout="wide")
 st.markdown(DARK_CSS, unsafe_allow_html=True)
@@ -171,7 +172,10 @@ if not agg.empty:
     st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Tabs ───────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["Relocation ranking", "Location quotients", "Modeled risk by tier"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    "Relocation ranking", "Location quotients",
+    "Modeled risk by tier", "🌐 Live India Context",
+])
 
 with tab1:
     st.markdown(
@@ -365,3 +369,194 @@ with tab3:
 
     if target_city == user_ck:
         st.caption("Pick a different target city to compare a different tier.")
+
+# ── TAB 4 — LIVE INDIA CONTEXT ─────────────────────────────────────────────────
+with tab4:
+    st.markdown("""
+    <div style="background:rgba(99,102,241,0.07); border:1px solid rgba(99,102,241,0.25);
+                border-radius:14px; padding:1rem 1.5rem; margin-bottom:1.5rem;
+                display:flex; gap:0.75rem; align-items:flex-start;">
+        <div style="font-size:1.3rem;">🌐</div>
+        <div>
+            <div style="font-size:0.82rem; font-weight:700; color:#818cf8;
+                        text-transform:uppercase; letter-spacing:1px; margin-bottom:0.3rem;">
+                Real India Labor Data</div>
+            <div style="font-size:0.85rem; color:#94a3b8; line-height:1.55;">
+                <strong style="color:#e2e8f0;">National trends</strong> are fetched live from the
+                <strong style="color:#e2e8f0;">World Bank Open API</strong>.
+                <strong style="color:#e2e8f0;">State-level data</strong> is from the official
+                <strong style="color:#e2e8f0;">PLFS 2022-23 report</strong> (MOSPI, Govt. of India) —
+                state unemployment is not available on the World Bank API.
+                Use this view to ground your city decision in real macro and regional data.
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ── National KPIs from World Bank
+    st.markdown('<div class="section-title">📊 India National Labor Snapshot (World Bank)</div>',
+                unsafe_allow_html=True)
+
+    with st.spinner("Fetching live data from World Bank…"):
+        wb_data = fetch_labor_market_pulse("India")
+
+    KEY_KPIS = [
+        ("Unemployment Rate (%)",       "📊", "neutral"),
+        ("Youth Unemployment 15-24 (%)","👶", "up"),
+        ("Labor Force Participation (%)","💪", "neutral"),
+        ("Employment-to-Population (%)","🏭", "neutral"),
+    ]
+    kpi_cols = st.columns(len(KEY_KPIS))
+    for col, (label, icon, dt) in zip(kpi_cols, KEY_KPIS):
+        with col:
+            series = wb_data.get(label)
+            if series is not None and not series.empty:
+                latest_val  = series.iloc[-1]["Value"]
+                latest_year = int(series.iloc[-1]["Year"])
+                delta_txt   = ""
+                if len(series) >= 2:
+                    prev = series.iloc[-2]["Value"]
+                    chg = round(latest_val - prev, 2)
+                    arrow = "▲" if chg > 0 else "▼"
+                    delta_txt = f"{arrow} {abs(chg)}pp vs {latest_year - 1}"
+                st.markdown(
+                    render_kpi_card(icon, label, f"{latest_val:.1f}%", delta_txt, dt),
+                    unsafe_allow_html=True
+                )
+            else:
+                st.markdown(render_kpi_card(icon, label, "N/A", "Unavailable", "neutral"),
+                            unsafe_allow_html=True)
+
+    # ── National unemployment trend sparkline
+    if wb_data.get("Unemployment Rate (%)") is not None:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">📈 India Unemployment Trend (World Bank, 1991–2023)</div>',
+                    unsafe_allow_html=True)
+        ue_series = wb_data["Unemployment Rate (%)"]
+        fig_ue = go.Figure()
+        fig_ue.add_trace(go.Scatter(
+            x=ue_series["Year"], y=ue_series["Value"],
+            mode="lines+markers", name="Unemployment Rate",
+            line=dict(color="#6366f1", width=2.5),
+            marker=dict(size=5, color="#6366f1"),
+            fill="tozeroy",
+            fillcolor="rgba(99,102,241,0.08)",
+            hovertemplate="<b>Year: %{x}</b><br>Rate: %{y:.2f}%<extra></extra>",
+        ))
+        youth = wb_data.get("Youth Unemployment 15-24 (%)")
+        if youth is not None and not youth.empty:
+            fig_ue.add_trace(go.Scatter(
+                x=youth["Year"], y=youth["Value"],
+                mode="lines", name="Youth Unemployment (15-24)",
+                line=dict(color="#f59e0b", width=2, dash="dot"),
+                hovertemplate="<b>Year: %{x}</b><br>Youth: %{y:.2f}%<extra></extra>",
+            ))
+        fig_ue.update_layout(
+            **plotly_dark_layout(height=360),
+            xaxis_title="Year", yaxis_title="Unemployment Rate (%)",
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+                        bgcolor="rgba(0,0,0,0.3)", font=dict(color="#cbd5e1")),
+        )
+        st.plotly_chart(fig_ue, use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── State-level unemployment breakdown (PLFS 2022-23)
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">🗺️ State-Level Unemployment — PLFS 2022-23 (UPS, 15+ yrs)</div>',
+                unsafe_allow_html=True)
+
+    state_df = get_state_unemployment()
+
+    view_type = st.radio("View", ["Combined", "Urban vs Rural comparison"],
+                         horizontal=True, key="state_view_type")
+
+    if view_type == "Combined":
+        color_discrete = dict(
+            North="#6366f1", South="#10b981", East="#f59e0b",
+            West="#06b6d4", Central="#8b5cf6", Northeast="#ec4899",
+        )
+        fig_state = px.bar(
+            state_df.sort_values("Combined_UE", ascending=True),
+            x="Combined_UE", y="State", orientation="h",
+            color="Region",
+            color_discrete_map=color_discrete,
+            text="Combined_UE",
+            labels={"Combined_UE": "Unemployment Rate (%)"},
+        )
+        fig_state.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
+        india_avg = state_df["Combined_UE"].mean()
+        fig_state.add_vline(x=india_avg, line_dash="dot", line_color="#94a3b8",
+                            annotation_text=f"India avg ~{india_avg:.1f}%",
+                            annotation_position="top right",
+                            annotation_font=dict(color="#94a3b8", size=10))
+        fig_state.update_layout(
+            **plotly_dark_layout(height=max(560, 20 * len(state_df))),
+            xaxis_title="Unemployment Rate (%)", yaxis_title="",
+        )
+        st.plotly_chart(fig_state, use_container_width=True)
+    else:
+        state_plot = state_df.dropna(subset=["Urban_UE"]).sort_values("Combined_UE", ascending=False).head(20)
+        fig_urvr = go.Figure()
+        fig_urvr.add_trace(go.Bar(
+            x=state_plot["State"], y=state_plot["Urban_UE"],
+            name="Urban", marker_color="#6366f1",
+        ))
+        fig_urvr.add_trace(go.Bar(
+            x=state_plot["State"], y=state_plot["Rural_UE"],
+            name="Rural", marker_color="#10b981",
+        ))
+        fig_urvr.update_layout(
+            **plotly_dark_layout(height=420),
+            barmode="group",
+            xaxis_title="State", yaxis_title="Unemployment Rate (%)",
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+                        bgcolor="rgba(0,0,0,0.3)", font=dict(color="#cbd5e1")),
+            xaxis_tickangle=-45,
+        )
+        st.plotly_chart(fig_urvr, use_container_width=True)
+
+    st.caption("Source: PLFS Annual Report 2022-23, MOSPI, Government of India | UPS = Usual Principal Status")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # ── Region comparison
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">🏙️ Average Unemployment by Region</div>',
+                unsafe_allow_html=True)
+    region_avg = (
+        state_df.groupby("Region")["Combined_UE"]
+        .mean().round(2)
+        .reset_index()
+        .rename(columns={"Combined_UE": "Avg Unemployment (%)"})
+        .sort_values("Avg Unemployment (%)", ascending=False)
+    )
+    fig_reg = px.bar(
+        region_avg, x="Region", y="Avg Unemployment (%)",
+        color="Avg Unemployment (%)",
+        color_continuous_scale=["#0d9488", "#6366f1", "#ef4444"],
+        text="Avg Unemployment (%)",
+    )
+    fig_reg.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
+    fig_reg.update_layout(
+        **plotly_dark_layout(height=320),
+        xaxis_title="Region", yaxis_title="Average Unemployment (%)",
+        coloraxis_showscale=False,
+    )
+    st.plotly_chart(fig_reg, use_container_width=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # ── Export
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">📥 Export State Data</div>', unsafe_allow_html=True)
+    csv_bytes = state_df.to_csv(index=False).encode()
+    st.download_button(
+        "⬇ Download PLFS State Unemployment Data (CSV)",
+        csv_bytes,
+        file_name="india_state_unemployment_plfs2023.csv",
+        mime="text/csv",
+    )
+    st.caption("Source: PLFS Annual Report 2022-23 | Ministry of Statistics & Programme Implementation (MOSPI)")

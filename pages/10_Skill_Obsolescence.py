@@ -156,7 +156,7 @@ with col1:
             declining[show_cols].head(12).style.map(
                 _style_declining, subset=["slope_mentions_per_step"]
             ),
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
         )
     st.markdown("</div>", unsafe_allow_html=True)
@@ -182,7 +182,7 @@ with col2:
             emerging[show_cols].head(12).style.map(
                 _style_emerging, subset=["slope_mentions_per_step"]
             ),
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
         )
     st.markdown("</div>", unsafe_allow_html=True)
@@ -222,7 +222,7 @@ fig_scatter.update_layout(
     yaxis_title="Total mentions",
     legend_title="Category",
 )
-st.plotly_chart(fig_scatter, use_container_width=True)
+st.plotly_chart(fig_scatter, width='stretch')
 st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -263,7 +263,7 @@ if selected_multi:
         fig_multi.update_layout(**plotly_dark_layout(height=400))
         fig_multi.update_xaxes(title_text="Time bucket")
         fig_multi.update_yaxes(title_text=f"Mentions ({'per month' if freq == 'M' else 'per week'})")
-        st.plotly_chart(fig_multi, use_container_width=True)
+        st.plotly_chart(fig_multi, width='stretch')
     else:
         st.info("Selected skills not found in trend data.")
 else:
@@ -330,7 +330,7 @@ if user_skill_input.strip():
 
         st.dataframe(
             risk_df.style.map(_style_cat, subset=["Category"]),
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
         )
 

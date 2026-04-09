@@ -36,6 +36,26 @@ st.markdown("""
     <div class="hero-subtitle">Design economic shock scenarios and compare their unemployment trajectories side-by-side</div>
 </div>""", unsafe_allow_html=True)
 
+st.markdown("""
+<div style="background:rgba(99,102,241,0.07); border:1px solid rgba(99,102,241,0.2);
+            border-radius:14px; padding:1rem 1.4rem; margin-bottom:1.5rem;
+            display:flex; align-items:flex-start; gap:1rem;">
+    <div style="font-size:1.5rem; margin-top:0.1rem;">🧪</div>
+    <div>
+        <div style="font-size:0.78rem; font-weight:700; color:#818cf8; text-transform:uppercase;
+                    letter-spacing:1px; margin-bottom:0.35rem;">Simulation Mode</div>
+        <div style="font-size:0.87rem; color:#94a3b8; line-height:1.6;">
+            All results on this page are <strong style="color:#e2e8f0;">model-generated projections</strong>,
+            not observed data. Scenarios are computed using parametric shock equations seeded from India's
+            real World Bank unemployment baseline (~7% structural rate). Adjust sliders to explore hypothetical
+            futures. For real observed data, visit
+            <strong style="color:#06b6d4;">Sector Analysis → Live World Bank Data</strong> or
+            <strong style="color:#06b6d4;">Market Pulse → Live India Labor Data</strong>.
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 SCENARIO_PRESETS = {
     # rr=0.05 matches the slider minimum — the old rr=0.0 was silently clamped
     # to 0.05 by max(0.05, ...) below, creating a mismatch between the visible
@@ -183,7 +203,7 @@ with col_main:
     ))
     fig.update_layout(**plotly_dark_layout(height=380))
     fig.update_layout(xaxis_title="Year", yaxis_title="Unemployment Rate (%)")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     st.markdown("</div>", unsafe_allow_html=True)
 
 with col_side:
@@ -204,7 +224,7 @@ with col_side:
     ))
     fig_b.update_layout(**plotly_dark_layout(height=220))
     fig_b.update_layout(xaxis_title="Peak %", margin=dict(l=5, r=40, t=5, b=5), showlegend=False)
-    st.plotly_chart(fig_b, use_container_width=True)
+    st.plotly_chart(fig_b, width='stretch')
 
     # Risk gauges
     st.markdown("<br>", unsafe_allow_html=True)
@@ -237,7 +257,7 @@ with col_p:
         "Scenario A": [f"{si_a*100:.0f}%", f"{sd_a} yrs", f"{rr_a*100:.0f}%", policy_a],
         "Scenario B": [f"{si_b*100:.0f}%", f"{sd_b} yrs", f"{rr_b*100:.0f}%", policy_b],
     }
-    st.dataframe(pd.DataFrame(pdata), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(pdata), width='stretch', hide_index=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
 with col_i:
@@ -246,17 +266,17 @@ with col_i:
     idata = {
         "Index": ["Stress Index (USI)", "Recovery Quality", "Policy Cushion", "Early Warning"],
         "Scenario A": [
-            idx_a.get("unemployment_stress_index","N/A"),
-            idx_a.get("rqi_label","N/A"),
-            idx_a.get("policy_cushion_score","N/A"),
-            idx_a.get("early_warning","N/A"),
+            str(idx_a.get("unemployment_stress_index", "N/A")),
+            str(idx_a.get("rqi_label", "N/A")),
+            str(idx_a.get("policy_cushion_score", "N/A")),
+            str(idx_a.get("early_warning", "N/A")),
         ],
         "Scenario B": [
-            idx_b.get("unemployment_stress_index","N/A"),
-            idx_b.get("rqi_label","N/A"),
-            idx_b.get("policy_cushion_score","N/A"),
-            idx_b.get("early_warning","N/A"),
+            str(idx_b.get("unemployment_stress_index", "N/A")),
+            str(idx_b.get("rqi_label", "N/A")),
+            str(idx_b.get("policy_cushion_score", "N/A")),
+            str(idx_b.get("early_warning", "N/A")),
         ],
     }
-    st.dataframe(pd.DataFrame(idata), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(idata), width='stretch', hide_index=True)
     st.markdown("</div>", unsafe_allow_html=True)

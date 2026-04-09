@@ -66,6 +66,23 @@ data/
 - `API_BASE_URL` changed to `http://127.0.0.1:8000` (avoids DNS delay, prevents "API Offline" on startup)
 - Health check TTL lowered to 10 s with 2-attempt retry via `/data-status` endpoint
 
+## Data Modes
+
+The platform supports two parallel data modes:
+
+| Mode | Description | Pages |
+|------|-------------|-------|
+| **🌐 Real Data** | Live World Bank Open Data API (no key required) | Overview (evidence-based), Sector → Live tab, Market Pulse → Live tab, Geo Career |
+| **🧪 Simulation** | Parametric shock equations seeded from India's historical baseline | Simulator, Career Lab, AI Insights, Sector → Scenario tab |
+
+## Free AI Integration
+
+Multi-provider LLM chain in `src/llm_insights.py`:
+1. **Groq (LLaMA 3.1 · Free)** — `GROQ_API_KEY` set as Replit secret
+2. Gemini (free) — `GEMINI_API_KEY` optional
+3. OpenAI (paid) — `OPENAI_API_KEY` optional
+4. Rule-based fallback — always available
+
 ## Development Phases
 - Phase 1 (done): Features 1–3 (Simulator, Sector Analysis, Career Lab)
 - Phase 2 (done): Features 4–5 (AI Insights, Model Validation) + API health fix
@@ -73,3 +90,4 @@ data/
 - Phase 4 (done): Feature 7 (Job Market Pulse)
 - Phase 5 (done): Feature 8 (Geo Career Advisor)
 - Phase 6 (done): Feature 9 (Skill Obsolescence) — ALL 9 FEATURES COMPLETE
+- Phase 7 (done): Remaining polish — dynamic status bar, simulation mode banners on pages 2/4/5, real data backtest badge on page 6, "Two Data Modes" homepage section, 56× use_container_width deprecation fixes, Arrow mixed-type table bug fix

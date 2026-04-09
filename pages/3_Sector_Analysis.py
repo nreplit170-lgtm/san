@@ -123,7 +123,7 @@ with tab_sim:
         ))
         fig_heat.update_layout(**plotly_dark_layout(height=280))
         fig_heat.update_layout(margin=dict(l=10, r=10, t=10, b=10))
-        st.plotly_chart(fig_heat, use_container_width=True)
+        st.plotly_chart(fig_heat, width='stretch')
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_radar:
@@ -162,7 +162,7 @@ with tab_sim:
             ),
             showlegend=True,
         )
-        st.plotly_chart(fig_r, use_container_width=True)
+        st.plotly_chart(fig_r, width='stretch')
         st.markdown("</div>", unsafe_allow_html=True)
 
     # ─── Treemap ────────────────────────────────────────────────────────────────
@@ -180,7 +180,7 @@ with tab_sim:
         coloraxis_colorbar=dict(tickfont=dict(color="#94a3b8"),
                                 title=dict(text="Stress", font=dict(color="#94a3b8"))),
     )
-    st.plotly_chart(fig_tree, use_container_width=True)
+    st.plotly_chart(fig_tree, width='stretch')
     st.markdown("</div>", unsafe_allow_html=True)
 
     # ─── Sector Cards ───────────────────────────────────────────────────────────
@@ -336,7 +336,7 @@ with tab_live:
                 xaxis_title="% of total employment",
                 xaxis=dict(range=[0, max(emp_df["Employment_Share"]) * 1.25]),
             )
-            st.plotly_chart(fig_emp, use_container_width=True)
+            st.plotly_chart(fig_emp, width='stretch')
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_gdp:
@@ -365,7 +365,7 @@ with tab_live:
                 xaxis_title="% of GDP",
                 xaxis=dict(range=[0, max(gdp_df["GDP_Share"]) * 1.25]),
             )
-            st.plotly_chart(fig_gdp, use_container_width=True)
+            st.plotly_chart(fig_gdp, width='stretch')
         st.markdown("</div>", unsafe_allow_html=True)
 
     # ─── Scatter: Employment vs GDP ─────────────────────────────────────────────
@@ -407,7 +407,7 @@ with tab_live:
             xaxis_title="GDP Share (%)",
             yaxis_title="Employment Share (%)",
         )
-        st.plotly_chart(fig_sc, use_container_width=True)
+        st.plotly_chart(fig_sc, width='stretch')
         st.markdown("</div>", unsafe_allow_html=True)
 
     # ─── Raw data table ──────────────────────────────────────────────────────────
@@ -421,6 +421,6 @@ with tab_live:
     display_df["GDP_Share"] = display_df["GDP_Share"].apply(
         lambda v: f"{v:.2f}%" if pd.notna(v) else "N/A"
     )
-    st.dataframe(display_df, use_container_width=True, hide_index=True)
+    st.dataframe(display_df, width='stretch', hide_index=True)
     st.caption("Source: World Bank Open Data · Indicators: SL.AGR/IND/SRV.EMPL.ZS · NV.AGR/IND/SRV/IND.MANF.ZS")
     st.markdown("</div>", unsafe_allow_html=True)

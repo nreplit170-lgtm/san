@@ -45,6 +45,25 @@ st.markdown("""
     <div class="hero-subtitle">Machine-crafted economic narratives, year-by-year story mode, policy comparison, and sensitivity analysis</div>
 </div>""", unsafe_allow_html=True)
 
+st.markdown("""
+<div style="background:rgba(99,102,241,0.07); border:1px solid rgba(99,102,241,0.2);
+            border-radius:14px; padding:1rem 1.4rem; margin-bottom:1.5rem;
+            display:flex; align-items:flex-start; gap:1rem;">
+    <div style="font-size:1.5rem; margin-top:0.1rem;">🧪</div>
+    <div>
+        <div style="font-size:0.78rem; font-weight:700; color:#818cf8; text-transform:uppercase;
+                    letter-spacing:1px; margin-bottom:0.35rem;">Simulation Mode — AI narratives on projected data</div>
+        <div style="font-size:0.87rem; color:#94a3b8; line-height:1.6;">
+            The AI narrative engine generates insights from a
+            <strong style="color:#e2e8f0;">simulated economic shock scenario</strong> (configured in the sidebar),
+            not from live observed data. The LLM interprets model-generated unemployment trajectories
+            and sector stress scores. Configure the scenario parameters and click
+            <strong style="color:#e2e8f0;">Generate AI Insights</strong> to run analysis.
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 
 # ─── Data fetching ─────────────────────────────────────────────────────────────
 @st.cache_data(ttl=60)
@@ -292,7 +311,7 @@ with col_chart:
 
         fig.update_layout(**plotly_dark_layout(height=420))
         fig.update_layout(xaxis_title="Year", yaxis_title="Unemployment Rate (%)")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -366,7 +385,7 @@ if sens_rows:
 
     st.dataframe(
         sens_df.style.map(_color_warning, subset=["Early Warning"]),
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
     )
 else:

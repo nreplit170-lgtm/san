@@ -132,7 +132,7 @@ with tab_postings:
             fig_s.update_layout(**plotly_dark_layout(height=max(320, 24 * len(sf))))
             fig_s.update_yaxes(autorange="reversed")
             fig_s.update_layout(showlegend=False, coloraxis_showscale=False)
-            st.plotly_chart(fig_s, use_container_width=True)
+            st.plotly_chart(fig_s, width='stretch')
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_b:
@@ -148,7 +148,7 @@ with tab_postings:
             fig_r.update_layout(**plotly_dark_layout(height=max(320, 22 * len(rf))))
             fig_r.update_yaxes(autorange="reversed")
             fig_r.update_layout(showlegend=False, coloraxis_showscale=False)
-            st.plotly_chart(fig_r, use_container_width=True)
+            st.plotly_chart(fig_r, width='stretch')
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -174,7 +174,7 @@ with tab_postings:
         col_m1, col_m2 = st.columns([3, 2])
         with col_m1:
             st.dataframe(display_mom.style.map(_style_momentum, subset=["Momentum"]),
-                         use_container_width=True, hide_index=True)
+                         width='stretch', hide_index=True)
         with col_m2:
             rising   = len(mom_df[mom_df["momentum"] == "Rising"])
             stable   = len(mom_df[mom_df["momentum"] == "Stable"])
@@ -185,7 +185,7 @@ with tab_postings:
                 text=[rising, stable, declining], textposition="outside",
             ))
             fig_mom.update_layout(**plotly_dark_layout(height=220), xaxis_title="Skill count")
-            st.plotly_chart(fig_mom, use_container_width=True)
+            st.plotly_chart(fig_mom, width='stretch')
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -204,7 +204,7 @@ with tab_postings:
         fig_t.update_layout(**plotly_dark_layout(height=380))
         fig_t.update_xaxes(title_text="Week (start)")
         fig_t.update_yaxes(title_text="Postings mentioning skill")
-        st.plotly_chart(fig_t, use_container_width=True)
+        st.plotly_chart(fig_t, width='stretch')
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -221,7 +221,7 @@ with tab_postings:
         fig_loc.update_layout(**plotly_dark_layout(height=max(280, 24 * len(lf))))
         fig_loc.update_yaxes(autorange="reversed")
         fig_loc.update_layout(showlegend=False, coloraxis_showscale=False)
-        st.plotly_chart(fig_loc, use_container_width=True)
+        st.plotly_chart(fig_loc, width='stretch')
         st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
 
@@ -237,8 +237,8 @@ with tab_postings:
         fig_h.update_layout(**plotly_dark_layout(height=max(280, 28 * len(sal))))
         fig_h.update_yaxes(autorange="reversed", title_text="")
         fig_h.update_xaxes(title_text="Median of (min+max)/2 LPA")
-        st.plotly_chart(fig_h, use_container_width=True)
-        st.dataframe(sal, use_container_width=True)
+        st.plotly_chart(fig_h, width='stretch')
+        st.dataframe(sal, width='stretch')
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -269,7 +269,7 @@ with tab_postings:
                     return "background-color: rgba(248,113,113,0.10); color: #f87171; font-weight: 700;"
                 return ""
             st.dataframe(gap_df.style.map(_style_gap, subset=["You have it"]),
-                         use_container_width=True, hide_index=True)
+                         width='stretch', hide_index=True)
 
             missing_skills = gap_df[~gap_df["You have it"]]["Skill"].tolist()
             if missing_skills:
@@ -432,7 +432,7 @@ with tab_live:
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
                         bgcolor="rgba(0,0,0,0.3)", font=dict(color="#cbd5e1")),
         )
-        st.plotly_chart(fig_ts, use_container_width=True)
+        st.plotly_chart(fig_ts, width='stretch')
     else:
         st.info("Select at least one indicator above.")
     st.markdown("</div>", unsafe_allow_html=True)
@@ -469,7 +469,7 @@ with tab_live:
             **plotly_dark_layout(height=340),
             xaxis_title="Year", yaxis_title="%",
         )
-        st.plotly_chart(breakdown_fig, use_container_width=True)
+        st.plotly_chart(breakdown_fig, width='stretch')
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_r:
@@ -500,7 +500,7 @@ with tab_live:
 
             st.dataframe(
                 snap_df.style.map(_color_change, subset=["YoY Change"]),
-                use_container_width=True,
+                width='stretch',
                 hide_index=True,
                 height=320,
             )

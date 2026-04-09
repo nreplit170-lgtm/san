@@ -167,7 +167,7 @@ if not agg.empty:
         legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
         barmode="group",
     )
-    st.plotly_chart(fig_city, use_container_width=True)
+    st.plotly_chart(fig_city, width='stretch')
     st.caption("Cyan bar = your selected city.")
     st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
@@ -221,7 +221,7 @@ with tab1:
             rk_disp.style
                 .map(_style_skill_fit, subset=["Skill match rate"])
                 .map(_style_score, subset=["Composite score"]),
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
         )
 
@@ -245,7 +245,7 @@ with tab1:
         )
         fig_rk.update_layout(**plotly_dark_layout(height=280))
         fig_rk.update_yaxes(autorange="reversed")
-        st.plotly_chart(fig_rk, use_container_width=True)
+        st.plotly_chart(fig_rk, width='stretch')
 
 with tab2:
     st.markdown(
@@ -261,7 +261,7 @@ with tab2:
         else:
             col_lq1, col_lq2 = st.columns([2, 3])
             with col_lq1:
-                st.dataframe(lq, use_container_width=True)
+                st.dataframe(lq, width='stretch')
             with col_lq2:
                 lq_plot = lq.dropna(subset=["lq"]).copy()
                 lq_plot["lq"] = lq_plot["lq"].astype(float)
@@ -280,7 +280,7 @@ with tab2:
                 fig_lq.update_layout(**plotly_dark_layout(height=max(240, 30 * len(lq_plot))))
                 fig_lq.update_yaxes(autorange="reversed")
                 fig_lq.update_layout(showlegend=False)
-                st.plotly_chart(fig_lq, use_container_width=True)
+                st.plotly_chart(fig_lq, width='stretch')
 
         local_df = dkey[dkey["city_key"] == user_ck]
         if len(local_df) and phrases:
@@ -365,7 +365,7 @@ with tab3:
         yaxis_title="High-risk probability (%)",
         xaxis_title="Location tier",
     )
-    st.plotly_chart(fig_tier, use_container_width=True)
+    st.plotly_chart(fig_tier, width='stretch')
     st.caption("Cyan bar = your current city's tier.")
 
     if target_city == user_ck:
@@ -482,7 +482,7 @@ with tab4:
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
                         bgcolor="rgba(0,0,0,0.3)", font=dict(color="#cbd5e1")),
         )
-        st.plotly_chart(fig_ue, use_container_width=True)
+        st.plotly_chart(fig_ue, width='stretch')
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -520,7 +520,7 @@ with tab4:
             **plotly_dark_layout(height=max(560, 20 * len(state_df))),
             xaxis_title="Unemployment Rate (%)", yaxis_title="",
         )
-        st.plotly_chart(fig_state, use_container_width=True)
+        st.plotly_chart(fig_state, width='stretch')
     else:
         state_plot = state_df.dropna(subset=["Urban_UE"]).sort_values("Combined_UE", ascending=False).head(20)
         fig_urvr = go.Figure()
@@ -540,7 +540,7 @@ with tab4:
                         bgcolor="rgba(0,0,0,0.3)", font=dict(color="#cbd5e1")),
             xaxis_tickangle=-45,
         )
-        st.plotly_chart(fig_urvr, use_container_width=True)
+        st.plotly_chart(fig_urvr, width='stretch')
 
     st.caption("Source: PLFS Annual Report 2022-23, MOSPI, Government of India | UPS = Usual Principal Status")
     st.markdown("</div>", unsafe_allow_html=True)
@@ -569,7 +569,7 @@ with tab4:
         xaxis_title="Region", yaxis_title="Average Unemployment (%)",
         coloraxis_showscale=False,
     )
-    st.plotly_chart(fig_reg, use_container_width=True)
+    st.plotly_chart(fig_reg, width='stretch')
     st.markdown("</div>", unsafe_allow_html=True)
 
     # ── Export

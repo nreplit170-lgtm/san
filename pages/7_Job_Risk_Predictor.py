@@ -158,7 +158,7 @@ with col_out:
             title={"text": "High-risk probability", "font": {"color": "#94a3b8", "size": 14}},
         ))
         gauge.update_layout(**plotly_dark_layout(height=220))
-        st.plotly_chart(gauge, use_container_width=True)
+        st.plotly_chart(gauge, width='stretch')
 
         st.markdown("**Engineered features**")
         feat = res.features
@@ -226,7 +226,7 @@ with col_out:
                 title=dict(text="Contribution shift after skill upgrade", font=dict(color="#94a3b8", size=13)),
                 yaxis_title="Change in log-odds contribution",
             )
-            st.plotly_chart(fig_wi, use_container_width=True)
+            st.plotly_chart(fig_wi, width='stretch')
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -271,7 +271,7 @@ How much each feature pushes your risk above (<span style="color:#f87171;">red</
         margin=dict(l=10, r=60, t=20, b=30),
     )
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.plotly_chart(fig_contrib, use_container_width=True)
+    st.plotly_chart(fig_contrib, width='stretch')
     st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -330,7 +330,7 @@ Your current skills, education, and location — but across all industries. Sort
         margin=dict(l=10, r=80, t=20, b=30),
     )
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.plotly_chart(fig_ind, use_container_width=True)
+    st.plotly_chart(fig_ind, width='stretch')
     st.markdown("</div>", unsafe_allow_html=True)
 
 

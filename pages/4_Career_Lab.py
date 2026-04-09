@@ -35,6 +35,25 @@ st.markdown("""
     <div class="hero-subtitle">Discover which sectors are growing, which are at risk, and what skills to build</div>
 </div>""", unsafe_allow_html=True)
 
+st.markdown("""
+<div style="background:rgba(99,102,241,0.07); border:1px solid rgba(99,102,241,0.2);
+            border-radius:14px; padding:1rem 1.4rem; margin-bottom:1.5rem;
+            display:flex; align-items:flex-start; gap:1rem;">
+    <div style="font-size:1.5rem; margin-top:0.1rem;">🧪</div>
+    <div>
+        <div style="font-size:0.78rem; font-weight:700; color:#818cf8; text-transform:uppercase;
+                    letter-spacing:1px; margin-bottom:0.35rem;">Simulation Mode</div>
+        <div style="font-size:0.87rem; color:#94a3b8; line-height:1.6;">
+            Sector growth, risk rankings, and skill recommendations on this page are derived from
+            <strong style="color:#e2e8f0;">parametric simulation</strong> output — not live job market
+            data. Growth / risk classification is based on the simulated shock scenario you configure
+            in the sidebar. For real employment share data, visit
+            <strong style="color:#06b6d4;">Sector Analysis → Live World Bank Data</strong>.
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 @st.cache_data(ttl=60)
 def get_career_data(si, rr):
     try:
@@ -110,7 +129,7 @@ with col_l:
         fig_bub.update_layout(**plotly_dark_layout(height=340, showlegend=True))
         fig_bub.update_xaxes(title_text="Resilience Score", gridcolor="rgba(255,255,255,0.05)", linecolor="rgba(255,255,255,0.08)", tickfont=dict(color="#64748b"))
         fig_bub.update_yaxes(title_text="Stress Score", gridcolor="rgba(255,255,255,0.05)", linecolor="rgba(255,255,255,0.08)", tickfont=dict(color="#64748b"))
-        st.plotly_chart(fig_bub, use_container_width=True)
+        st.plotly_chart(fig_bub, width='stretch')
     else:
         st.info("Sector data not available")
     st.markdown("</div>", unsafe_allow_html=True)
@@ -138,7 +157,7 @@ with col_r:
         fig_skill.update_layout(**plotly_dark_layout(height=340, showlegend=False, margin=dict(l=10, r=60, t=10, b=10)))
         fig_skill.update_xaxes(range=[0, 1.2], title_text="Demand Index", showgrid=True, gridcolor="rgba(255,255,255,0.05)", linecolor="rgba(255,255,255,0.08)", tickfont=dict(color="#64748b"))
         fig_skill.update_yaxes(title_text="", gridcolor="rgba(255,255,255,0.05)", linecolor="rgba(255,255,255,0.08)", tickfont=dict(color="#64748b"))
-        st.plotly_chart(fig_skill, use_container_width=True)
+        st.plotly_chart(fig_skill, width='stretch')
     else:
         st.info("Skills data not available")
     st.markdown("</div>", unsafe_allow_html=True)

@@ -127,14 +127,16 @@ st.markdown("""
 # ─── API health check ──────────────────────────────────────────────────────────
 @st.cache_data(ttl=10)
 def check_api_health():
+    last_err = "Unknown error"
     for attempt in range(2):
         try:
             r = requests.get(f"{API_BASE_URL}/data-status", timeout=5)
             if r.status_code == 200:
-                return True, None
+                payload = r.json()
+                return True, None, payload.get("source", "")
         except Exception as e:
             last_err = str(e)
-    return False, last_err
+    return False, last_err, ""
 
 @st.cache_data(ttl=60)
 def get_baseline_preview():
@@ -147,7 +149,7 @@ def get_baseline_preview():
         pass
     return None
 
-api_ok, api_err = check_api_health()
+api_ok, api_err, data_source_label = check_api_health()
 baseline_preview = get_baseline_preview()
 
 # ─── Hero Section ─────────────────────────────────────────────────────────────
@@ -163,13 +165,25 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─── Status Bar ───────────────────────────────────────────────────────────────
-api_dot = "dot-green" if api_ok else "dot-red"
+api_dot   = "dot-green" if api_ok else "dot-red"
 api_label = "API Online" if api_ok else "API Offline"
+
+# Derive World Bank status from the live /data-status response
+_src_lower = data_source_label.lower()
+if "live" in _src_lower or "world bank" in _src_lower:
+    wb_dot, wb_label = "dot-green", "World Bank Live"
+elif "offline" in _src_lower or "csv" in _src_lower:
+    wb_dot, wb_label = "dot-yellow", "Offline (CSV Fallback)"
+elif api_ok:
+    wb_dot, wb_label = "dot-yellow", "Data Loading…"
+else:
+    wb_dot, wb_label = "dot-red", "Data Unavailable"
+
 st.markdown(f"""
 <div class="status-bar">
     <div class="status-item"><span class="dot {api_dot}"></span>{api_label}</div>
     <div class="status-item"><span class="dot dot-green"></span>India Dataset Loaded</div>
-    <div class="status-item"><span class="dot dot-green"></span>World Bank Data</div>
+    <div class="status-item"><span class="dot {wb_dot}"></span>{wb_label}</div>
     <div class="status-item"><span class="dot dot-yellow"></span>Live Forecasting</div>
 </div>
 """, unsafe_allow_html=True)
@@ -222,7 +236,7 @@ if baseline_preview:
         fig.update_yaxes(showgrid=True, gridcolor="rgba(255,255,255,0.04)", title_text="Unemployment %")
         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         st.markdown("<div style='color:#94a3b8; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.5rem;'>📈 BASELINE FORECAST PREVIEW</div>", unsafe_allow_html=True)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ─── Navigation Cards ─────────────────────────────────────────────────────────
@@ -257,8 +271,60 @@ for i, (icon, title, desc, path) in enumerate(pages):
         if i % 3 != 2:
             st.markdown("")
 
+# ─── Data Modes Explanation ───────────────────────────────────────────────────
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("""
+<div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06);
+            border-radius:20px; padding:2rem 2.5rem; margin-bottom:2rem;">
+    <div style="text-align:center; font-size:0.78rem; font-weight:700; text-transform:uppercase;
+                letter-spacing:2px; color:#6366f1; margin-bottom:1.5rem;">
+        ↕ TWO DATA MODES IN ONE PLATFORM
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+        <div style="background:rgba(6,182,212,0.06); border:1px solid rgba(6,182,212,0.2);
+                    border-radius:14px; padding:1.4rem;">
+            <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.7rem;">
+                <span style="font-size:1.2rem;">🌐</span>
+                <span style="font-size:0.85rem; font-weight:700; color:#06b6d4; text-transform:uppercase;
+                              letter-spacing:0.8px;">Real Data Mode</span>
+            </div>
+            <div style="font-size:0.87rem; color:#94a3b8; line-height:1.7;">
+                Pulls <strong style="color:#e2e8f0;">live unemployment, employment, and GDP indicators</strong>
+                directly from the World Bank Open Data API (no key required). Figures are the most recently
+                published annual values. Used on:
+                <ul style="margin:0.5rem 0 0; padding-left:1.2rem; color:#cbd5e1;">
+                    <li>Overview → Evidence-Based Forecast</li>
+                    <li>Sector Analysis → Live World Bank Data</li>
+                    <li>Market Pulse → Live India Labor Data</li>
+                    <li>Geo Career → Live indicators</li>
+                </ul>
+            </div>
+        </div>
+        <div style="background:rgba(99,102,241,0.06); border:1px solid rgba(99,102,241,0.2);
+                    border-radius:14px; padding:1.4rem;">
+            <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.7rem;">
+                <span style="font-size:1.2rem;">🧪</span>
+                <span style="font-size:0.85rem; font-weight:700; color:#818cf8; text-transform:uppercase;
+                              letter-spacing:0.8px;">Simulation Mode</span>
+            </div>
+            <div style="font-size:0.87rem; color:#94a3b8; line-height:1.7;">
+                Uses <strong style="color:#e2e8f0;">parametric shock equations seeded from India's historical
+                baseline</strong> (~7% structural unemployment rate) to generate hypothetical scenarios.
+                You control shock intensity, duration, recovery rate, and policy response. Used on:
+                <ul style="margin:0.5rem 0 0; padding-left:1.2rem; color:#cbd5e1;">
+                    <li>Scenario Simulator</li>
+                    <li>Career Lab</li>
+                    <li>AI Insights (LLM on simulation output)</li>
+                    <li>Sector Analysis → Scenario tab</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 # ─── Footer ───────────────────────────────────────────────────────────────────
-st.markdown("<br><br>", unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True)
 st.markdown("""
 <div style="text-align:center; color:#334155; font-size:0.8rem; padding:1rem 0; border-top:1px solid rgba(255,255,255,0.05);">
     Built by <strong style="color:#6366f1;">Bhushan Nanavare</strong> · 

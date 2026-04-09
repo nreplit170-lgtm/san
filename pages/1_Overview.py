@@ -162,7 +162,7 @@ fig.update_layout(
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
                 bgcolor="rgba(0,0,0,0.3)", font=dict(color="#cbd5e1")),
 )
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width='stretch')
 st.markdown("</div>", unsafe_allow_html=True)
 
 # ─── Metrics + Table ──────────────────────────────────────────────────────────
@@ -193,7 +193,7 @@ with col_r:
     display_df = baseline_df[["Year", "Predicted_Unemployment"]].rename(
         columns={"Predicted_Unemployment": "Unemployment Rate (%)"}
     ).round(2)
-    st.dataframe(display_df, use_container_width=True, hide_index=True, height=260)
+    st.dataframe(display_df, width='stretch', hide_index=True, height=260)
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ─── Evidence-Based Real-Data Forecast ─────────────────────────────────────────
@@ -330,7 +330,7 @@ else:
             bgcolor="rgba(0,0,0,0.3)", font=dict(color="#cbd5e1"),
         ),
     )
-    st.plotly_chart(fig_real, use_container_width=True)
+    st.plotly_chart(fig_real, width='stretch')
 
     # ── Side-by-side: forecast table + method explanation
     col_fc1, col_fc2 = st.columns([1, 1])
@@ -338,7 +338,7 @@ else:
         st.markdown("**Forecast values**")
         fc_display = fc_df_real[["Year", "Predicted_Unemployment", "Lower_80", "Upper_80"]].round(2)
         fc_display.columns = ["Year", "Central (%)", "Lower 80% (%)", "Upper 80% (%)"]
-        st.dataframe(fc_display, use_container_width=True, hide_index=True)
+        st.dataframe(fc_display, width='stretch', hide_index=True)
     with col_fc2:
         st.markdown("**How this works**")
         st.markdown("""

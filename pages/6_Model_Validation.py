@@ -41,6 +41,24 @@ st.markdown("""
     <div class="hero-subtitle">Backtest accuracy, R² score, error metrics, residuals analysis, and model reliability assessment</div>
 </div>""", unsafe_allow_html=True)
 
+st.markdown("""
+<div style="background:rgba(6,182,212,0.07); border:1px solid rgba(6,182,212,0.2);
+            border-radius:14px; padding:1rem 1.4rem; margin-bottom:1.5rem;
+            display:flex; align-items:flex-start; gap:1rem;">
+    <div style="font-size:1.5rem; margin-top:0.1rem;">🌐</div>
+    <div>
+        <div style="font-size:0.78rem; font-weight:700; color:#06b6d4; text-transform:uppercase;
+                    letter-spacing:1px; margin-bottom:0.35rem;">Real Data Backtest</div>
+        <div style="font-size:0.87rem; color:#94a3b8; line-height:1.6;">
+            Validation metrics are computed by testing the forecasting model against
+            <strong style="color:#e2e8f0;">India's actual historical unemployment data from the World Bank</strong>
+            (SL.UEM.TOTL.ZS, 1991–present). R², MAE, and RMSE reflect how well the model
+            fits <em>real observed values</em> — these are not simulation results.
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 
 @st.cache_data(ttl=120)
 def get_validation():
@@ -144,7 +162,7 @@ with col_gauge:
     fig_gauge.update_layout(
         **plotly_dark_layout(height=300, margin=dict(l=20, r=20, t=60, b=10)),
     )
-    st.plotly_chart(fig_gauge, use_container_width=True)
+    st.plotly_chart(fig_gauge, width='stretch')
 
     st.markdown(f"""
     <div style="text-align:center; margin-top:0.5rem;">
@@ -251,7 +269,7 @@ if bt_data:
             yaxis_title="Unemployment Rate (%)",
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         )
-        st.plotly_chart(fig_bt, use_container_width=True)
+        st.plotly_chart(fig_bt, width='stretch')
     else:
         st.info("No backtest comparison data available.")
 else:
@@ -296,7 +314,7 @@ if detail:
             xaxis_title="Year",
             yaxis_title="Predicted − Actual (pp)",
         )
-        st.plotly_chart(fig_res, use_container_width=True)
+        st.plotly_chart(fig_res, width='stretch')
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_hist:
@@ -314,7 +332,7 @@ if detail:
         fig_hist.add_vline(x=0, line=dict(color="#f59e0b", width=2, dash="dash"))
         fig_hist.update_layout(**plotly_dark_layout(height=300, showlegend=False))
         fig_hist.update_layout(xaxis_title="Residual Value", yaxis_title="Count")
-        st.plotly_chart(fig_hist, use_container_width=True)
+        st.plotly_chart(fig_hist, width='stretch')
         st.markdown("</div>", unsafe_allow_html=True)
 
     # Year-by-year error table
@@ -339,7 +357,7 @@ if detail:
 
     st.dataframe(
         display_df.style.map(_style_residual, subset=["Residual (pp)", "Abs Error (pp)"]),
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
     )
     st.markdown("</div>", unsafe_allow_html=True)
